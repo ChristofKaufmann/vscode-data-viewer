@@ -1,0 +1,11 @@
+city,country,population,area_km2,density,founded
+Bochum,Germany,364628,145.66,2503.4,1041
+Dortmund,Germany,586852,280.71,2090.6,882
+Essen,Germany,579432,210.34,2754.7,845
+Cologne,Germany,1073096,405.02,2649.5,-38
+Berlin,Germany,3677472,891.82,4123.0,1237
+Hamburg,Germany,1906411,755.22,2524.3,808
+Munich,Germany,1487708,310.70,4788.2,1158
+Amsterdam,Netherlands,921402,219.32,4201.2,1275
+Vienna,Austria,1973403,414.78,4757.7,-15
+Zurich,Switzerland,421878,87.88,4800.6,-15

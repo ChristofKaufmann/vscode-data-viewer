@@ -1,0 +1,97 @@
+{
+  "name": "data-viewer",
+  "displayName": "Data Viewer",
+  "description": "View tabular data files (CSV/TSV) in a fast, read-only table.",
+  "version": "0.0.1",
+  "publisher": "ckaufmann",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Data Science",
+    "Visualization"
+  ],
+  "keywords": [
+    "jupyterVariableViewers",
+    "csv",
+    "dataframe",
+    "data viewer"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "dataViewer.table",
+        "displayName": "Data Viewer",
+        "selector": [
+          {
+            "filenamePattern": "*.csv"
+          },
+          {
+            "filenamePattern": "*.tsv"
+          }
+        ],
+        "priority": "option"
+      }
+    ],
+    "commands": [
+      {
+        "command": "dataViewer.open",
+        "title": "Open in Data Viewer",
+        "category": "Data Viewer"
+      },
+      {
+        "command": "dataViewer.openJupyterVariable",
+        "title": "Open Jupyter Variable in Data Viewer",
+        "category": "Data Viewer"
+      }
+    ],
+    "jupyterVariableViewers": [
+      {
+        "command": "dataViewer.openJupyterVariable",
+        "title": "Open in Data Viewer",
+        "dataTypes": [
+          "DataFrame",
+          "Series",
+          "ndarray",
+          "list",
+          "dict"
+        ]
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "dataViewer.open",
+          "when": "resourceExtname =~ /^\\.(csv|tsv)$/i",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "dataViewer.openJupyterVariable",
+          "when": "false"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "typecheck": "tsc --noEmit",
+    "vscode:prepublish": "npm run build"
+  },
+  "dependencies": {
+    "papaparse": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/papaparse": "^5.3.14",
+    "@types/vscode": "^1.85.0",
+    "@vscode/jupyter-extension": "^1.1.1",
+    "esbuild": "^0.28.0",
+    "typescript": "^5.4.0"
+  }
+}

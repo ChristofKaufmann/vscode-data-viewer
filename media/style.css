@@ -1,0 +1,95 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: var(--vscode-editor-font-size, 13px);
+  color: var(--vscode-editor-foreground);
+  background: var(--vscode-editor-background);
+}
+
+#scroller {
+  position: absolute;
+  inset: 0 0 23px 0;
+  overflow: auto;
+}
+
+#status {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22px;
+  line-height: 22px;
+  padding: 0 10px;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  background: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-editor-background));
+  border-top: 1px solid var(--vscode-editorGroup-border, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: grid;
+}
+
+#body {
+  position: relative;
+}
+
+.row {
+  position: absolute;
+  left: 0;
+  display: grid;
+}
+
+.row.alt .cell:not(.rownum) {
+  background: color-mix(in srgb, var(--vscode-foreground) 4%, transparent);
+}
+
+.row:hover .cell {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.cell {
+  height: 24px;
+  line-height: 24px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--vscode-editorIndentGuide-background, rgba(128, 128, 128, 0.2));
+}
+
+.cell.head {
+  font-weight: 600;
+  background: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-editor-background));
+  border-bottom: 1px solid var(--vscode-editorGroup-border, rgba(128, 128, 128, 0.35));
+}
+
+.cell.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell.rownum {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  text-align: right;
+  color: var(--vscode-editorLineNumber-foreground);
+  background: var(--vscode-editor-background);
+}
+
+.cell.rownum.corner {
+  z-index: 4;
+  background: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-editor-background));
+  border-bottom: 1px solid var(--vscode-editorGroup-border, rgba(128, 128, 128, 0.35));
+}
