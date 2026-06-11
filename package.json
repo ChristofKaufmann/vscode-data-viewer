@@ -83,14 +83,11 @@
     "typecheck": "tsc --noEmit",
     "vscode:prepublish": "npm run build"
   },
-  "dependencies": {
-    "papaparse": "^5.4.1"
-  },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "@types/papaparse": "^5.3.14",
     "@types/vscode": "^1.85.0",
     "@vscode/jupyter-extension": "^1.1.1",
+    "@vscode/python-extension": "^1.0.6",
     "esbuild": "^0.28.0",
     "typescript": "^5.4.0"
   }

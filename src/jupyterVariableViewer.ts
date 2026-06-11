@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { Jupyter, Kernel } from '@vscode/jupyter-extension';
+import { buildDumpCode, DumpPayload, parsePayload, toTable } from './pandasTable';
 import { configureTableWebview } from './tableWebview';
 
 /**
@@ -15,7 +16,6 @@ interface JupyterVariable {
   frameId?: number;
 }
 
-const MAX_ROWS = 100_000;
 // The api.d.ts doc comment claims 'application/x.notebook.stream.stdout', but the
 // implementation emits the NotebookCellOutputItem.stdout mime — accept both.
 const STDOUT_MIMES = new Set([
@@ -23,13 +23,6 @@ const STDOUT_MIMES = new Set([
   'application/x.notebook.stream.stdout',
 ]);
 const ERROR_MIME = 'application/vnd.code.notebook.error';
-
-interface DumpPayload {
-  total: number;
-  showIndex: boolean;
-  indexName: string;
-  table: { columns: string[]; index: unknown[]; data: unknown[][] };
-}
 
 export function registerJupyterVariableViewer(context: vscode.ExtensionContext): vscode.Disposable {
   return vscode.commands.registerCommand(
@@ -94,7 +87,7 @@ async function openVariable(
     (_progress, token) => fetchVariable(kernel, variable.name, token)
   );
 
-  const { columns, rows, truncated } = toTable(payload);
+  const { columns, rows, note } = toTable(payload);
 
   const panel = vscode.window.createWebviewPanel(
     'dataViewer.variableTable',
@@ -104,9 +97,7 @@ async function openVariable(
   );
   const subscription = configureTableWebview(panel.webview, context.extensionUri, {
     fileName: `${variable.name} — ${notebook.uri.path.split('/').pop() ?? 'notebook'}`,
-    note: truncated
-      ? `showing first ${MAX_ROWS.toLocaleString()} of ${payload.total.toLocaleString()} rows`
-      : undefined,
+    note,
     columns,
     rows,
   });
@@ -139,60 +130,11 @@ async function fetchVariable(
   if (token.isCancellationRequested) {
     throw new Error('Cancelled.');
   }
-  const trimmed = (stdout || textPlain).trim();
-  if (!trimmed) {
+  const merged = stdout || textPlain;
+  if (!merged.trim()) {
     throw new Error(
       `The kernel returned no data (received output types: ${[...seenMimes].join(', ') || 'none'}).`
     );
   }
-  return JSON.parse(trimmed) as DumpPayload;
-}
-
-/**
- * Serializes the variable as JSON on the kernel's stdout. Everything runs
- * inside a function so the user's namespace only ever sees (and loses) one
- * temporary name. Series/ndarray/list/dict are normalized via pandas, which
- * must be importable in the kernel (always true for DataFrame/Series).
- */
-function buildDumpCode(name: string): string {
-  return [
-    'def _VSCODE_dataviewer_dump():',
-    '    import json',
-    '    import pandas as pd',
-    `    obj = ${name}`,
-    '    if isinstance(obj, pd.Series):',
-    '        obj = obj.to_frame()',
-    '    elif not isinstance(obj, pd.DataFrame):',
-    '        obj = pd.DataFrame(obj)',
-    '    total = len(obj)',
-    `    head = obj.head(${MAX_ROWS}).copy()`,
-    '    show_index = not (isinstance(head.index, pd.RangeIndex) and head.index.start == 0 and head.index.step == 1)',
-    '    index_name = str(head.index.name) if head.index.name is not None else "index"',
-    '    head.columns = [str(c) for c in head.columns]',
-    '    if isinstance(head.index, pd.MultiIndex):',
-    '        head.index = [str(i) for i in head.index]',
-    '    table = head.to_json(orient="split", date_format="iso", default_handler=str)',
-    '    print(\'{"total": %d, "showIndex": %s, "indexName": %s, "table": %s}\'',
-    '          % (total, "true" if show_index else "false", json.dumps(index_name), table))',
-    '',
-    '_VSCODE_dataviewer_dump()',
-    'del _VSCODE_dataviewer_dump',
-  ].join('\n');
-}
-
-function toTable(payload: DumpPayload): { columns: string[]; rows: string[][]; truncated: boolean } {
-  const { table, showIndex } = payload;
-  const format = (value: unknown): string => {
-    if (value === null || value === undefined) {
-      return '';
-    }
-    return typeof value === 'object' ? JSON.stringify(value) : String(value);
-  };
-
-  const columns = showIndex ? [payload.indexName, ...table.columns] : table.columns;
-  const rows = table.data.map((row, i) => {
-    const cells = row.map(format);
-    return showIndex ? [format(table.index[i]), ...cells] : cells;
-  });
-  return { columns, rows, truncated: payload.total > table.data.length };
+  return parsePayload(merged);
 }
