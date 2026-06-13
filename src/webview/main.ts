@@ -20,6 +20,7 @@ const settingsBtn = document.getElementById('heatmap-settings') as HTMLButtonEle
 const heatmapPanel = document.getElementById('heatmap-panel')!;
 const colormapSelect = document.getElementById('colormap') as HTMLSelectElement;
 const centerCheckbox = document.getElementById('center') as HTMLInputElement;
+const columnwiseCheckbox = document.getElementById('columnwise') as HTMLInputElement;
 
 // Column 0 is always the DataFrame index (sticky on the left); columns 1..n
 // are the data columns. Each row in a chunk follows the same layout.
@@ -43,6 +44,7 @@ const pendingChunks = new Set<number>();
 let heatmap = heatmapCheckbox.checked;
 let currentColormap = colormapSelect.value;
 let currentCenter = centerCheckbox.checked;
+let currentColumnwise = columnwiseCheckbox.checked;
 
 window.addEventListener('message', (event: MessageEvent<HostMessage>) => {
   const message = event.data;
@@ -96,7 +98,12 @@ refreshBtn.addEventListener('click', () => {
 /** Asks the host to re-read the source with the current heatmap settings. */
 function requestReload(): void {
   setRefreshing(true);
-  vscode.postMessage({ type: 'refresh', colormap: currentColormap, center: currentCenter });
+  vscode.postMessage({
+    type: 'refresh',
+    colormap: currentColormap,
+    center: currentCenter,
+    columnwise: currentColumnwise,
+  });
 }
 
 /** Toggles the refresh button's spinner/disabled state. */
@@ -112,6 +119,7 @@ function persistSettings(): void {
     enabled: heatmap,
     colormap: currentColormap,
     center: currentCenter,
+    columnwise: currentColumnwise,
   });
 }
 
@@ -131,6 +139,12 @@ colormapSelect.addEventListener('change', () => {
 
 centerCheckbox.addEventListener('change', () => {
   currentCenter = centerCheckbox.checked;
+  persistSettings();
+  requestReload();
+});
+
+columnwiseCheckbox.addEventListener('change', () => {
+  currentColumnwise = columnwiseCheckbox.checked;
   persistSettings();
   requestReload();
 });
@@ -315,4 +329,9 @@ function evictDistantChunks(currentChunk: number): void {
 }
 
 setRefreshing(true);
-vscode.postMessage({ type: 'ready', colormap: currentColormap, center: currentCenter });
+vscode.postMessage({
+  type: 'ready',
+  colormap: currentColormap,
+  center: currentCenter,
+  columnwise: currentColumnwise,
+});

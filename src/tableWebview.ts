@@ -47,6 +47,7 @@ export function configureTableWebview(
         enabled: message.enabled,
         colormap: message.colormap,
         center: message.center,
+        columnwise: message.columnwise,
       });
       return;
     }
@@ -102,6 +103,9 @@ function getHtml(
         </label>
         <label class="field-check" title="Make the value range symmetric around 0">
           <input type="checkbox" id="center"${settings.center ? ' checked' : ''}> Center at 0
+        </label>
+        <label class="field-check" title="Use a separate value range per column">
+          <input type="checkbox" id="columnwise"${settings.columnwise ? ' checked' : ''}> Columnwise
         </label>
       </div>
     </div>

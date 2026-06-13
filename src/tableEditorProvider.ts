@@ -47,7 +47,12 @@ export class TableEditorProvider implements vscode.CustomReadonlyEditorProvider<
    */
   private async loadData(uri: vscode.Uri, options: LoadOptions): Promise<TableData> {
     const name = uri.path.split('/').pop() ?? '';
-    const code = buildDumpCode(csvReadExpression(uri.fsPath), options.colormap, options.center);
+    const code = buildDumpCode(
+      csvReadExpression(uri.fsPath),
+      options.colormap,
+      options.center,
+      options.columnwise
+    );
     for (;;) {
       try {
         const stdout = await vscode.window.withProgress(

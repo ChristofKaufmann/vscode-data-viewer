@@ -29,12 +29,14 @@ export interface DumpPayload {
  * and prints the payload. Everything lives inside one temporary function so
  * a kernel's user namespace only ever sees (and loses) one name. `cmap` is the
  * matplotlib colormap used for the heatmap colors; `center` makes the value
- * range symmetric around 0 (vmax = max(|vmin|, |vmax|), vmin = -vmax).
+ * range symmetric around 0 (vmax = max(|vmin|, |vmax|), vmin = -vmax);
+ * `columnwise` computes the range per column instead of once over all numerics.
  */
 export function buildDumpCode(
   objExpr: string,
   cmap: string = HEATMAP_CMAP,
-  center: boolean = false
+  center: boolean = false,
+  columnwise: boolean = false
 ): string {
   return [
     'def _VSCODE_dataviewer_dump():',
@@ -74,36 +76,46 @@ export function buildDumpCode(
     '    elif pd.api.types.is_datetime64_any_dtype(head.index) or pd.api.types.is_timedelta64_dtype(head.index):',
     '        head.index = [None if pd.isna(i) else str(i) for i in head.index]',
     '    table = head.to_json(orient="split", date_format="iso", default_handler=str)',
-    // Heatmap colors: map every numeric cell through a matplotlib colormap
-    // using a single vmin/vmax over all numeric values. Non-numeric and NaN
-    // cells stay null. Wrapped in try/except so a kernel without matplotlib
-    // still views fine (colors just become null).
+    // Heatmap colors: map every numeric cell through a matplotlib colormap.
+    // The value range is either shared across all numeric columns or computed
+    // per column (columnwise); `center` makes it symmetric around 0. Non-numeric
+    // and NaN cells stay null. Wrapped in try/except so a kernel without
+    // matplotlib still views fine (colors just become null).
     '    colors = None',
     '    try:',
     '        import numpy as _np',
     '        import matplotlib as _mpl',
     `        _cmap = _mpl.colormaps[${JSON.stringify(cmap)}]`,
+    `        _center = ${center ? 'True' : 'False'}`,
+    `        _columnwise = ${columnwise ? 'True' : 'False'}`,
     '        _ncols, _nrows = head.shape[1], head.shape[0]',
     '        _numeric = [i for i in range(_ncols)',
     '                    if pd.api.types.is_numeric_dtype(head.iloc[:, i])',
     '                    and not pd.api.types.is_bool_dtype(head.iloc[:, i])]',
     '        if _numeric and _nrows:',
     '            _stacked = _np.concatenate([head.iloc[:, i].to_numpy(dtype="float64") for i in _numeric])',
-    '            _finite = _stacked[_np.isfinite(_stacked)]',
-    '            if _finite.size:',
-    '                _vmin, _vmax = float(_finite.min()), float(_finite.max())',
-    `                if ${center ? 'True' : 'False'}:`,
-    '                    _vmax = max(abs(_vmin), abs(_vmax))',
-    '                    _vmin = -_vmax',
-    '                _denom = (_vmax - _vmin) or 1.0',
+    '            _gfinite = _stacked[_np.isfinite(_stacked)]',
+    '            if _gfinite.size:',
+    '                _glo, _ghi = float(_gfinite.min()), float(_gfinite.max())',
     '                _cols = [[None] * _nrows for _ in range(_ncols)]',
     '                for i in _numeric:',
     '                    _arr = head.iloc[:, i].to_numpy(dtype="float64")',
-    '                    _norm = _np.clip((_arr - _vmin) / _denom, 0.0, 1.0)',
+    '                    _mask = _np.isfinite(_arr)',
+    '                    if _columnwise:',
+    '                        _cf = _arr[_mask]',
+    '                        if not _cf.size:',
+    '                            continue',
+    '                        _lo, _hi = float(_cf.min()), float(_cf.max())',
+    '                    else:',
+    '                        _lo, _hi = _glo, _ghi',
+    '                    if _center:',
+    '                        _hi = max(abs(_lo), abs(_hi))',
+    '                        _lo = -_hi',
+    '                    _denom = (_hi - _lo) or 1.0',
+    '                    _norm = _np.clip((_arr - _lo) / _denom, 0.0, 1.0)',
     '                    _rgb = (_cmap(_norm)[:, :3] * 255).round().astype("int64")',
     '                    _packed = (_rgb[:, 0] << 16) | (_rgb[:, 1] << 8) | _rgb[:, 2]',
     '                    _hex = ["#%06x" % int(p) for p in _packed]',
-    '                    _mask = _np.isfinite(_arr)',
     '                    _cols[i] = [h if m else None for h, m in zip(_hex, _mask)]',
     '                colors = [list(_row) for _row in zip(*_cols)]',
     '    except Exception:',

@@ -6,11 +6,11 @@ export const CHUNK_SIZE = 500;
 
 /** Webview -> extension host */
 export type WebviewMessage =
-  | { type: 'ready'; colormap?: string; center?: boolean }
-  | { type: 'refresh'; colormap?: string; center?: boolean }
+  | { type: 'ready'; colormap?: string; center?: boolean; columnwise?: boolean }
+  | { type: 'refresh'; colormap?: string; center?: boolean; columnwise?: boolean }
   | { type: 'rows'; chunk: number }
   /** Persist heatmap UI choices so they carry over to the next view. */
-  | { type: 'settings'; enabled: boolean; colormap: string; center: boolean };
+  | { type: 'settings'; enabled: boolean; colormap: string; center: boolean; columnwise: boolean };
 
 /** Extension host -> webview */
 export type HostMessage =

@@ -91,7 +91,14 @@ async function openVariable(
           cancellable: true,
         },
         (_progress, token) =>
-          fetchVariable(kernel, variableName, options.colormap, options.center, token)
+          fetchVariable(
+            kernel,
+            variableName,
+            options.colormap,
+            options.center,
+            options.columnwise,
+            token
+          )
       );
       return { fileName: `${variableName} — ${notebookName}`, ...toTable(payload) };
     } catch (err) {
@@ -119,12 +126,14 @@ async function fetchVariable(
   name: string,
   colormap: string | undefined,
   center: boolean | undefined,
+  columnwise: boolean | undefined,
   token: vscode.CancellationToken
 ): Promise<DumpPayload> {
   let stdout = '';
   let textPlain = '';
   const seenMimes = new Set<string>();
-  for await (const output of kernel.executeCode(buildDumpCode(name, colormap, center), token)) {
+  const code = buildDumpCode(name, colormap, center, columnwise);
+  for await (const output of kernel.executeCode(code, token)) {
     for (const item of output.items) {
       seenMimes.add(item.mime);
       const text = new TextDecoder().decode(item.data);

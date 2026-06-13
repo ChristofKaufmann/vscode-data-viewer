@@ -10,6 +10,7 @@ export interface HeatmapSettings {
   enabled: boolean;
   colormap: string;
   center: boolean;
+  columnwise: boolean;
 }
 
 const STATE_KEY = 'dataViewer.heatmap';
@@ -20,6 +21,7 @@ export function getHeatmapSettings(context: vscode.ExtensionContext): HeatmapSet
     enabled: saved.enabled ?? true,
     colormap: saved.colormap ?? HEATMAP_CMAP,
     center: saved.center ?? false,
+    columnwise: saved.columnwise ?? false,
   };
 }
 

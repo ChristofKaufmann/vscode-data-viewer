@@ -127,10 +127,12 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /"colors": %s/);
   // A chosen colormap is injected safely as a JSON/Python string literal.
   assert.match(buildDumpCode('x', 'plasma'), /colormaps\["plasma"\]/);
-  // Centering rewrites the range symmetrically only when requested.
-  assert.match(buildDumpCode('x', 'viridis', true), /_vmax = max\(abs\(_vmin\), abs\(_vmax\)\)/);
-  assert.match(buildDumpCode('x', 'viridis', true), /if True:/);
-  assert.match(buildDumpCode('x', 'viridis', false), /if False:/);
+  // Centering and columnwise are injected as Python booleans.
+  assert.match(buildDumpCode('x', 'viridis', true), /_center = True/);
+  assert.match(buildDumpCode('x', 'viridis', false), /_center = False/);
+  assert.match(buildDumpCode('x', 'viridis', false, true), /_columnwise = True/);
+  assert.match(buildDumpCode('x', 'viridis', false, false), /_columnwise = False/);
+  assert.match(code, /_hi = max\(abs\(_lo\), abs\(_hi\)\)/);
   // Regression guards: no old single-name default, no dropped showIndex field.
   assert.doesNotMatch(code, /else "index"/);
   assert.doesNotMatch(code, /showIndex/);

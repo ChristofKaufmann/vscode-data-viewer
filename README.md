@@ -12,13 +12,14 @@ in the spirit of Data Wrangler but starting small.
   DataFrames viewed from a kernel
 
 - **Heatmap mode** (toolbar checkbox, on by default) — numeric cells are colored
-  by value. Colors are computed in pandas/matplotlib with a single vmin/vmax over
-  all numeric values; non-numeric and NaN cells are left uncolored. A gear button
-  opens a settings popover with a **colormap** selector (viridis, plasma, coolwarm,
-  …) and a **Center at 0** toggle (symmetric range, useful with diverging
-  colormaps); changing either recomputes colors in Python on reload. The on/off,
-  colormap, and center choices are remembered (extension global state) and carry
-  over to the next view. (`HEATMAP_CMAP` in `pandasTable.ts` sets the default.)
+  by value. Colors are computed in pandas/matplotlib; non-numeric and NaN cells
+  are left uncolored. A gear button opens a settings popover with a **colormap**
+  selector (viridis, plasma, coolwarm, …), a **Center at 0** toggle (symmetric
+  range, useful with diverging colormaps), and a **Columnwise** toggle (a separate
+  vmin/vmax per column instead of one shared range); changing any recomputes colors
+  in Python on reload. The on/off, colormap, center, and columnwise choices are
+  remembered (extension global state) and carry over to the next view.
+  (`HEATMAP_CMAP` in `pandasTable.ts` sets the default colormap.)
 - **Virtualized rendering** — only visible rows are materialized, so large files scroll smoothly
 - Toolbar with a **refresh** button that reloads from the original source (re-runs
   `read_csv` for files, re-queries the kernel for variables — picking up edits and
@@ -105,9 +106,7 @@ identical behavior for files and variables.
 
 ## Ideas for later
 
-- Heatmap: selectable colormap, per-column vmin/vmax, center, and a runtime
-  colormap switch (currently fixed to viridis with a global range, computed in pandas)
 - Sorting and filtering
 - Parquet / Excel / JSON Lines support
-- Column statistics and type inference
-- Header on/off toggle, encoding selection
+- Column statistics
+- Header on/off toggle

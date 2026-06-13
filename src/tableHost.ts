@@ -17,6 +17,8 @@ export interface LoadOptions {
   colormap?: string;
   /** Center the heatmap value range on 0 (symmetric vmin/vmax). */
   center?: boolean;
+  /** Compute the value range per column instead of once over all numerics. */
+  columnwise?: boolean;
 }
 
 export interface TableHostDeps {
@@ -66,7 +68,11 @@ export function createTableHost(deps: TableHostDeps): (message: WebviewMessage) 
     switch (message.type) {
       case 'ready':
       case 'refresh':
-        void reload({ colormap: message.colormap, center: message.center });
+        void reload({
+          colormap: message.colormap,
+          center: message.center,
+          columnwise: message.columnwise,
+        });
         break;
       case 'rows': {
         if (!data) {

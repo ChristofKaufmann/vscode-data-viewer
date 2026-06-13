@@ -158,25 +158,29 @@ test('non-Error rejections are stringified', async () => {
   assert.deepEqual(errors, ['plain string failure']);
 });
 
-test('forwards the colormap and center flag from ready/refresh to load', async () => {
-  const seen: { colormap?: string; center?: boolean }[] = [];
+test('forwards colormap, center and columnwise from ready/refresh to load', async () => {
+  const seen: { colormap?: string; center?: boolean; columnwise?: boolean }[] = [];
   const handle = createTableHost({
     load: async (options) => {
-      seen.push({ colormap: options.colormap, center: options.center });
+      seen.push({
+        colormap: options.colormap,
+        center: options.center,
+        columnwise: options.columnwise,
+      });
       return makeData(1);
     },
     post: () => {},
     reportError: () => {},
   });
 
-  handle({ type: 'ready', colormap: 'viridis', center: false });
+  handle({ type: 'ready', colormap: 'viridis', center: false, columnwise: false });
   await flush();
-  handle({ type: 'refresh', colormap: 'coolwarm', center: true });
+  handle({ type: 'refresh', colormap: 'coolwarm', center: true, columnwise: true });
   await flush();
 
   assert.deepEqual(seen, [
-    { colormap: 'viridis', center: false },
-    { colormap: 'coolwarm', center: true },
+    { colormap: 'viridis', center: false, columnwise: false },
+    { colormap: 'coolwarm', center: true, columnwise: true },
   ]);
 });
 
