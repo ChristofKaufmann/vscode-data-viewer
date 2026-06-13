@@ -1,14 +1,7 @@
 import * as vscode from 'vscode';
-import { CHUNK_SIZE, HostMessage, WebviewMessage } from './shared/protocol';
+import { createTableHost, TableData } from './tableHost';
 
-export interface TableData {
-  /** Label shown in the status bar (file or variable name). */
-  fileName: string;
-  /** Optional extra status text, e.g. a truncation notice. */
-  note?: string;
-  columns: string[];
-  rows: string[][];
-}
+export { TableData } from './tableHost';
 
 /**
  * Points a webview at the bundled table renderer and serves it rows in
@@ -31,57 +24,13 @@ export function configureTableWebview(
   };
   webview.html = getHtml(webview, extensionUri);
 
-  let data: TableData | undefined;
-  let busy = false;
-
-  const reload = async (): Promise<void> => {
-    if (busy) {
-      return;
-    }
-    busy = true;
-    try {
-      data = await load();
-      post(webview, {
-        type: 'init',
-        fileName: data.fileName,
-        note: data.note,
-        columns: data.columns,
-        rowCount: data.rows.length,
-        sample: data.rows.slice(0, 100),
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      void vscode.window.showErrorMessage(`Data Viewer: ${message}`);
-      post(webview, { type: 'error', message });
-    } finally {
-      busy = false;
-    }
-  };
-
-  return webview.onDidReceiveMessage((message: WebviewMessage) => {
-    switch (message.type) {
-      case 'ready':
-      case 'refresh':
-        void reload();
-        break;
-      case 'rows': {
-        if (!data) {
-          return;
-        }
-        const start = message.chunk * CHUNK_SIZE;
-        post(webview, {
-          type: 'rows',
-          chunk: message.chunk,
-          rows: data.rows.slice(start, start + CHUNK_SIZE),
-        });
-        break;
-      }
-    }
+  const handle = createTableHost({
+    load,
+    post: (message) => void webview.postMessage(message),
+    reportError: (message) => void vscode.window.showErrorMessage(`Data Viewer: ${message}`),
   });
-}
 
-function post(webview: vscode.Webview, message: HostMessage): void {
-  void webview.postMessage(message);
+  return webview.onDidReceiveMessage(handle);
 }
 
 function getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {

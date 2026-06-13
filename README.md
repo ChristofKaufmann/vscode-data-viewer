@@ -55,7 +55,9 @@ npm test          # unit tests (node:test via tsx)
 Unit tests live in `test/` and cover the pure logic: the pandas data path
 (`pandasTable.ts` — index handling, cell formatting, truncation, output
 parsing, generated Python), the webview column helpers (`columns.ts` — numeric
-detection, widths, index/sticky cell classes), and a specificity guard for the
+detection, widths, index/sticky cell classes), the load/refresh message loop
+(`tableHost.ts` — init sampling, chunk slicing, refresh, error handling, and the
+busy guard against overlapping reloads), and a specificity guard for the
 row-hover CSS fix.
 
 Press **F5** in VS Code to launch an Extension Development Host with the
@@ -74,7 +76,10 @@ extension loaded, then open `sample-data/cities.csv` with it.
   dump code with `pd.read_csv` in a Python subprocess
 - `src/pythonRunner.ts` — resolves the interpreter (Python extension API,
   fallback `python3`) and runs scripts
-- `src/tableWebview.ts` — shared webview setup + chunked row serving
+- `src/tableWebview.ts` — wires a real webview to the table host (HTML, CSP,
+  `postMessage`, error notifications)
+- `src/tableHost.ts` — the webview message loop (load/refresh/serve chunks),
+  kept vscode-free so it can be unit-tested
 - `src/webview/main.ts` — virtualized table; requests only the visible row
   chunks and caches a bounded number of them
 - `src/webview/columns.ts` — pure column helpers (numeric detection, widths,
