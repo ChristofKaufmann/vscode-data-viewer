@@ -2,7 +2,7 @@
 // access so they can be unit-tested in plain Node.
 
 export const MIN_COL_WIDTH = 40;
-export const AUTO_MIN_COL_WIDTH = 60;
+export const AUTO_MIN_COL_WIDTH = 50;
 export const MAX_COL_WIDTH = 420;
 
 // Headers render bold (font-weight 600), so they take more horizontal space
