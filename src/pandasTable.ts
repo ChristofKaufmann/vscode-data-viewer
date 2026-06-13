@@ -40,7 +40,11 @@ export function buildDumpCode(objExpr: string): string {
     '        obj = pd.DataFrame(obj)',
     '    total = len(obj)',
     `    head = obj.head(${MAX_ROWS}).copy()`,
-    '    index_name = str(head.index.name) if head.index.name is not None else ""',
+    // index.names works for both a regular Index (one element) and a
+    // MultiIndex (whose .name is always None); join the level names so a
+    // MultiIndex still gets a header. Blank when no level is named.
+    '    index_names = [str(n) if n is not None else "" for n in head.index.names]',
+    '    index_name = ", ".join(index_names) if any(index_names) else ""',
     '    head.columns = [str(c) for c in head.columns]',
     '    if isinstance(head.index, pd.MultiIndex):',
     '        head.index = [str(i) for i in head.index]',

@@ -18,7 +18,7 @@ in the spirit of Data Wrangler but starting small.
 - Adjustable column widths (drag the header edge, double-click to auto-fit)
 - First row is treated as the header
 - The DataFrame index is shown as the leftmost column, labelled with the index
-  name (blank when the index is unnamed)
+  name (a MultiIndex shows its level names joined with ", "; blank when unnamed)
 - Numeric columns are detected and right-aligned
 - Sticky header and index column, theme-aware styling
 - Status bar with row/column counts
@@ -102,4 +102,3 @@ identical behavior for files and variables.
 ## Tests to try
 
 - DateTime column and index
-- MultiIndex

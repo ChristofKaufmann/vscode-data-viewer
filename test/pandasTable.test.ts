@@ -98,8 +98,11 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   const code = buildDumpCode('my_var');
   assert.match(code, /obj = my_var/);
   assert.match(code, /to_json\(orient="split"/);
-  // Regression guard for the index feature: unnamed index -> "" (not "index").
-  assert.match(code, /head\.index\.name is not None else ""/);
+  // Index header is built from index.names so a MultiIndex gets a header too,
+  // joined with ", " and blank when no level is named.
+  assert.match(code, /head\.index\.names/);
+  assert.match(code, /", "\.join/);
+  // Regression guards: no old single-name default, no dropped showIndex field.
   assert.doesNotMatch(code, /else "index"/);
   assert.doesNotMatch(code, /showIndex/);
 });
