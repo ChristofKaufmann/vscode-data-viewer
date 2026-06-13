@@ -5,6 +5,12 @@ export const MIN_COL_WIDTH = 40;
 export const AUTO_MIN_COL_WIDTH = 60;
 export const MAX_COL_WIDTH = 420;
 
+// Headers render bold (font-weight 600), so they take more horizontal space
+// than the same number of normal-weight body characters. The per-character
+// width estimate is tuned for the body text, so we inflate the header's
+// contribution to keep long headers from clipping.
+export const HEADER_WIDTH_FACTOR = 1.15;
+
 // Matches integers/decimals with an optional sign, decimal comma or point,
 // and scientific notation — used to right-align numeric columns.
 const NUMBER_PATTERN = /^-?(\d+([.,]\d+)?|[.,]\d+)([eE][+-]?\d+)?$/;
@@ -27,9 +33,13 @@ export function isNumericColumn(values: Iterable<string>): boolean {
   return nonEmptySeen;
 }
 
-/** Longest character count across a header and its cell values. */
+/**
+ * Effective character width of the widest content in a column. The header is
+ * weighted by HEADER_WIDTH_FACTOR because it renders bold; values count at
+ * face value.
+ */
 export function maxChars(header: string, values: Iterable<string>): number {
-  let longest = header.length;
+  let longest = header.length * HEADER_WIDTH_FACTOR;
   for (const value of values) {
     if (value.length > longest) {
       longest = value.length;

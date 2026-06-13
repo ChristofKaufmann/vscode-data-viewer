@@ -5,6 +5,7 @@ import {
   autoWidth,
   cellClass,
   clampDragWidth,
+  HEADER_WIDTH_FACTOR,
   isNumericColumn,
   MAX_COL_WIDTH,
   maxChars,
@@ -26,9 +27,11 @@ test('isNumericColumn rejects columns with any non-numeric value', () => {
   assert.equal(isNumericColumn(['2024-01-01']), false);
 });
 
-test('maxChars takes the longest of header and values', () => {
+test('maxChars weights the bold header but counts values at face value', () => {
+  // A longer value dominates and is counted at face value.
   assert.equal(maxChars('id', ['1', '100', '5']), 3);
-  assert.equal(maxChars('population', ['1', '2']), 'population'.length);
+  // A header-dominated column is widened by the bold-header factor.
+  assert.equal(maxChars('population', ['1', '2']), 'population'.length * HEADER_WIDTH_FACTOR);
 });
 
 test('autoWidth clamps to the auto min/max bounds', () => {

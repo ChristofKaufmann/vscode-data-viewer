@@ -172,16 +172,13 @@ function startResize(event: PointerEvent, col: number): void {
 
 /** Double-click on a handle: fit the column to its header and cached rows. */
 function autoFit(col: number): void {
-  let longest = columns[col].length;
+  const values: string[] = [];
   for (const rows of chunks.values()) {
     for (const row of rows) {
-      const len = (row[col] ?? '').length;
-      if (len > longest) {
-        longest = len;
-      }
+      values.push(row[col] ?? '');
     }
   }
-  colWidths[col] = autoWidth(longest);
+  colWidths[col] = autoWidth(maxChars(columns[col], values));
   manualWidths.set(columns[col], colWidths[col]);
   applyLayout();
   render();
