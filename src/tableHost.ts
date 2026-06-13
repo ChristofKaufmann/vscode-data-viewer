@@ -15,6 +15,8 @@ export interface TableData {
 export interface LoadOptions {
   /** matplotlib colormap name for the heatmap; undefined uses the default. */
   colormap?: string;
+  /** Center the heatmap value range on 0 (symmetric vmin/vmax). */
+  center?: boolean;
 }
 
 export interface TableHostDeps {
@@ -64,7 +66,7 @@ export function createTableHost(deps: TableHostDeps): (message: WebviewMessage) 
     switch (message.type) {
       case 'ready':
       case 'refresh':
-        void reload({ colormap: message.colormap });
+        void reload({ colormap: message.colormap, center: message.center });
         break;
       case 'rows': {
         if (!data) {

@@ -90,7 +90,8 @@ async function openVariable(
           title: `Data Viewer: loading "${variableName}"…`,
           cancellable: true,
         },
-        (_progress, token) => fetchVariable(kernel, variableName, options.colormap, token)
+        (_progress, token) =>
+          fetchVariable(kernel, variableName, options.colormap, options.center, token)
       );
       return { fileName: `${variableName} — ${notebookName}`, ...toTable(payload) };
     } catch (err) {
@@ -117,12 +118,13 @@ async function fetchVariable(
   kernel: Kernel,
   name: string,
   colormap: string | undefined,
+  center: boolean | undefined,
   token: vscode.CancellationToken
 ): Promise<DumpPayload> {
   let stdout = '';
   let textPlain = '';
   const seenMimes = new Set<string>();
-  for await (const output of kernel.executeCode(buildDumpCode(name, colormap), token)) {
+  for await (const output of kernel.executeCode(buildDumpCode(name, colormap, center), token)) {
     for (const item of output.items) {
       seenMimes.add(item.mime);
       const text = new TextDecoder().decode(item.data);

@@ -120,6 +120,20 @@ body {
   font-size: 12px;
 }
 
+#heatmap-panel .field-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#heatmap-panel .field-check input {
+  margin: 0;
+  cursor: pointer;
+}
+
 #heatmap-panel select {
   padding: 2px 4px;
   color: var(--vscode-dropdown-foreground, var(--vscode-foreground));

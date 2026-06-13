@@ -19,6 +19,7 @@ const heatmapCheckbox = document.getElementById('heatmap') as HTMLInputElement;
 const settingsBtn = document.getElementById('heatmap-settings') as HTMLButtonElement;
 const heatmapPanel = document.getElementById('heatmap-panel')!;
 const colormapSelect = document.getElementById('colormap') as HTMLSelectElement;
+const centerCheckbox = document.getElementById('center') as HTMLInputElement;
 
 // Column 0 is always the DataFrame index (sticky on the left); columns 1..n
 // are the data columns. Each row in a chunk follows the same layout.
@@ -41,6 +42,7 @@ const pendingChunks = new Set<number>();
 
 let heatmap = heatmapCheckbox.checked;
 let currentColormap = colormapSelect.value;
+let currentCenter = centerCheckbox.checked;
 
 window.addEventListener('message', (event: MessageEvent<HostMessage>) => {
   const message = event.data;
@@ -94,7 +96,7 @@ refreshBtn.addEventListener('click', () => {
 /** Asks the host to re-read the source with the current heatmap settings. */
 function requestReload(): void {
   setRefreshing(true);
-  vscode.postMessage({ type: 'refresh', colormap: currentColormap });
+  vscode.postMessage({ type: 'refresh', colormap: currentColormap, center: currentCenter });
 }
 
 /** Toggles the refresh button's spinner/disabled state. */
@@ -105,7 +107,12 @@ function setRefreshing(on: boolean): void {
 
 // Persist heatmap choices so the next view inherits them.
 function persistSettings(): void {
-  vscode.postMessage({ type: 'settings', enabled: heatmap, colormap: currentColormap });
+  vscode.postMessage({
+    type: 'settings',
+    enabled: heatmap,
+    colormap: currentColormap,
+    center: currentCenter,
+  });
 }
 
 // Heatmap on/off is a local re-render; the colors are already loaded.
@@ -115,9 +122,15 @@ heatmapCheckbox.addEventListener('change', () => {
   render();
 });
 
-// Changing the colormap recomputes colors in Python, so it needs a reload.
+// Colormap and centering both recompute colors in Python, so they reload.
 colormapSelect.addEventListener('change', () => {
   currentColormap = colormapSelect.value;
+  persistSettings();
+  requestReload();
+});
+
+centerCheckbox.addEventListener('change', () => {
+  currentCenter = centerCheckbox.checked;
   persistSettings();
   requestReload();
 });
@@ -302,4 +315,4 @@ function evictDistantChunks(currentChunk: number): void {
 }
 
 setRefreshing(true);
-vscode.postMessage({ type: 'ready', colormap: currentColormap });
+vscode.postMessage({ type: 'ready', colormap: currentColormap, center: currentCenter });

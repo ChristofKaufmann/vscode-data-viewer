@@ -158,23 +158,26 @@ test('non-Error rejections are stringified', async () => {
   assert.deepEqual(errors, ['plain string failure']);
 });
 
-test('forwards the colormap from ready/refresh to load', async () => {
-  const seen: (string | undefined)[] = [];
+test('forwards the colormap and center flag from ready/refresh to load', async () => {
+  const seen: { colormap?: string; center?: boolean }[] = [];
   const handle = createTableHost({
     load: async (options) => {
-      seen.push(options.colormap);
+      seen.push({ colormap: options.colormap, center: options.center });
       return makeData(1);
     },
     post: () => {},
     reportError: () => {},
   });
 
-  handle({ type: 'ready', colormap: 'viridis' });
+  handle({ type: 'ready', colormap: 'viridis', center: false });
   await flush();
-  handle({ type: 'refresh', colormap: 'plasma' });
+  handle({ type: 'refresh', colormap: 'coolwarm', center: true });
   await flush();
 
-  assert.deepEqual(seen, ['viridis', 'plasma']);
+  assert.deepEqual(seen, [
+    { colormap: 'viridis', center: false },
+    { colormap: 'coolwarm', center: true },
+  ]);
 });
 
 test('overlapping reloads are ignored while one is in flight', async () => {

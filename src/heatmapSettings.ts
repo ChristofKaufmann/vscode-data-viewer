@@ -9,6 +9,7 @@ import { HEATMAP_CMAP } from './pandasTable';
 export interface HeatmapSettings {
   enabled: boolean;
   colormap: string;
+  center: boolean;
 }
 
 const STATE_KEY = 'dataViewer.heatmap';
@@ -18,6 +19,7 @@ export function getHeatmapSettings(context: vscode.ExtensionContext): HeatmapSet
   return {
     enabled: saved.enabled ?? true,
     colormap: saved.colormap ?? HEATMAP_CMAP,
+    center: saved.center ?? false,
   };
 }
 

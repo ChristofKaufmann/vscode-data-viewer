@@ -15,9 +15,10 @@ in the spirit of Data Wrangler but starting small.
   by value. Colors are computed in pandas/matplotlib with a single vmin/vmax over
   all numeric values; non-numeric and NaN cells are left uncolored. A gear button
   opens a settings popover with a **colormap** selector (viridis, plasma, coolwarm,
-  …); changing it recomputes colors in Python on reload. The on/off and colormap
-  choices are remembered (extension global state) and carry over to the next view.
-  (`HEATMAP_CMAP` in `pandasTable.ts` sets the default.)
+  …) and a **Center at 0** toggle (symmetric range, useful with diverging
+  colormaps); changing either recomputes colors in Python on reload. The on/off,
+  colormap, and center choices are remembered (extension global state) and carry
+  over to the next view. (`HEATMAP_CMAP` in `pandasTable.ts` sets the default.)
 - **Virtualized rendering** — only visible rows are materialized, so large files scroll smoothly
 - Toolbar with a **refresh** button that reloads from the original source (re-runs
   `read_csv` for files, re-queries the kernel for variables — picking up edits and

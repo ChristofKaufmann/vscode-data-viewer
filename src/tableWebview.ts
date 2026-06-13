@@ -43,7 +43,11 @@ export function configureTableWebview(
 
   return webview.onDidReceiveMessage((message: WebviewMessage) => {
     if (message.type === 'settings') {
-      void updateHeatmapSettings(context, { enabled: message.enabled, colormap: message.colormap });
+      void updateHeatmapSettings(context, {
+        enabled: message.enabled,
+        colormap: message.colormap,
+        center: message.center,
+      });
       return;
     }
     handle(message);
@@ -95,6 +99,9 @@ function getHtml(
         <label class="field">
           <span>Colormap</span>
           <select id="colormap">${colormapOptions}</select>
+        </label>
+        <label class="field-check" title="Make the value range symmetric around 0">
+          <input type="checkbox" id="center"${settings.center ? ' checked' : ''}> Center at 0
         </label>
       </div>
     </div>
