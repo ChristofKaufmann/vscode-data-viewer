@@ -139,6 +139,9 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   // Datetime columns are colored from their epoch values (separate group).
   assert.match(code, /_np\.isnat/);
   assert.match(code, /_hi = max\(abs\(_lo\), abs\(_hi\)\)/);
+  // Three range groups; centering is skipped for datetimes (arbitrary epoch).
+  assert.match(code, /"datetime" if .* else "timedelta"/);
+  assert.match(code, /_center and _grp\[_i\] != "datetime"/);
   // Regression guards: no old single-name default, no dropped showIndex field.
   assert.doesNotMatch(code, /else "index"/);
   assert.doesNotMatch(code, /showIndex/);

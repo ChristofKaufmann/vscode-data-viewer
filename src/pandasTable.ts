@@ -95,10 +95,11 @@ export function buildDumpCode(objExpr: string, options: HeatmapOptions = {}): st
     '    elif pd.api.types.is_datetime64_any_dtype(head.index) or pd.api.types.is_timedelta64_dtype(head.index):',
     '        head.index = [None if pd.isna(i) else str(i) for i in head.index]',
     '    table = head.to_json(orient="split", date_format="iso", default_handler=str)',
-    // Heatmap colors, computed from the original-dtype frame. Numeric and
-    // datetime columns form separate range groups (datetimes use epoch values,
-    // so they never distort the numeric range). Within a group the range is
-    // shared, or per-column when columnwise; `center` makes it symmetric.
+    // Heatmap colors, computed from the original-dtype frame. Numeric, datetime
+    // and timedelta columns form three separate range groups (each in its own
+    // unit, so they never distort each other). Within a group the range is
+    // shared, or per-column when columnwise; `center` makes it symmetric — but
+    // is skipped for datetimes, where the 1970 epoch origin makes 0 meaningless.
     // Wrapped in try/except so a kernel without matplotlib still views fine.
     '    colors = None',
     '    try:',
@@ -122,14 +123,14 @@ export function buildDumpCode(objExpr: string, options: HeatmapOptions = {}): st
     '                _f = _a.astype("int64").astype("float64")',
     '                _f[_np.isnat(_a)] = _np.nan',
     '                _vals[_i] = _f',
-    '                _grp[_i] = "dt"',
+    '                _grp[_i] = "datetime" if pd.api.types.is_datetime64_any_dtype(_c) else "timedelta"',
     '        def _grange(_g):',
     '            _members = [_vals[_i] for _i in range(_ncols) if _grp[_i] == _g]',
     '            if not _members:',
     '                return None',
     '            _s = _np.concatenate([_m[_np.isfinite(_m)] for _m in _members])',
     '            return (float(_s.min()), float(_s.max())) if _s.size else None',
-    '        _ranges = {"num": _grange("num"), "dt": _grange("dt")}',
+    '        _ranges = {_g: _grange(_g) for _g in ("num", "datetime", "timedelta")}',
     '        if _nrows and any(_g is not None for _g in _grp):',
     '            _cols = [[None] * _nrows for _ in range(_ncols)]',
     '            for _i in range(_ncols):',
@@ -147,7 +148,7 @@ export function buildDumpCode(objExpr: string, options: HeatmapOptions = {}): st
     '                    if _r is None:',
     '                        continue',
     '                    _lo, _hi = _r',
-    '                if _center:',
+    '                if _center and _grp[_i] != "datetime":',
     '                    _hi = max(abs(_lo), abs(_hi))',
     '                    _lo = -_hi',
     '                _denom = (_hi - _lo) or 1.0',
