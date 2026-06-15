@@ -102,7 +102,7 @@ function getHtml(
       <input type="checkbox" id="heatmap"${settings.colorizeNumeric && settings.colorizeDatetime && settings.colorizeCategorical ? ' checked' : ''}> Heatmap
     </label>
     <div id="heatmap-menu">
-      <button id="heatmap-settings" title="Heatmap settings" aria-expanded="false" aria-haspopup="true">⚙</button>
+      <button id="heatmap-settings" title="Heatmap settings" aria-expanded="false" aria-haspopup="true"><span class="codicon codicon-chevron-down"></span></button>
       <div id="heatmap-panel" role="dialog" aria-label="Heatmap settings" hidden>
         <label class="field-check" title="Color numeric columns">
           <input type="checkbox" id="colorize-numeric"${settings.colorizeNumeric ? ' checked' : ''}> Colorize numeric

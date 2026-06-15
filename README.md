@@ -27,7 +27,7 @@ in the spirit of Data Wrangler but starting small.
   categoricals only, by rank). Numeric, datetime and timedelta columns each form a
   separate value-range group so they never distort each other; ordered categoricals
   are ranked per column over their full set of categories.
-  A gear button opens the popover with those toggles plus a **colormap** selector
+  A chevron button opens the popover with those toggles plus a **colormap** selector
   (viridis, plasma, coolwarm, …) with a small preview swatch, a **Center at 0**
   toggle (symmetric range, useful
   with diverging colormaps), and a **Columnwise** toggle (a separate vmin/vmax per

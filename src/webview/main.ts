@@ -215,7 +215,7 @@ columnwiseCheckbox.addEventListener('change', () => {
   requestReload();
 });
 
-// Settings popover: toggle on the gear, dismiss on outside-click or Escape.
+// Settings popover: toggle on the chevron, dismiss on outside-click or Escape.
 function setPanelOpen(open: boolean): void {
   heatmapPanel.hidden = !open;
   settingsBtn.setAttribute('aria-expanded', String(open));
