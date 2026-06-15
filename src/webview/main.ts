@@ -4,6 +4,7 @@ import { idealTextColor } from './contrast';
 import { steppedGradient } from './colormaps';
 import { dtypeGlyph } from './dtypes';
 import { cycleSort, sortState } from './sorting';
+import { filterPlaceholder } from './filterHint';
 
 declare function acquireVsCodeApi(): { postMessage(message: WebviewMessage): void };
 
@@ -77,6 +78,7 @@ window.addEventListener('message', (event: MessageEvent<HostMessage>) => {
       columns = message.columns;
       rowCount = message.rowCount;
       columnTypes = message.columnTypes;
+      filterInput.placeholder = filterPlaceholder(columns, columnTypes, message.sample);
       initLayout(message.sample);
       // The sample only seeds the cache when it covers all of chunk 0;
       // a partial chunk would otherwise mask the missing rows forever.

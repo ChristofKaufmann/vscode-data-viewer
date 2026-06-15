@@ -131,7 +131,7 @@ function getHtml(
   </div>
   <div id="filter-bar">
     <input type="text" id="filter-input" spellcheck="false" autocomplete="off"
-           placeholder="Filter rows, e.g.  (founded &lt; 0 | founded &gt; 1000) &amp; last_census.notna() &amp; index != 0">
+           placeholder="Filter rows with a pandas query expression">
     <button id="filter-clear" title="Clear filter"><span class="codicon codicon-close"></span></button>
     <span id="filter-error"></span>
   </div>
