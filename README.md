@@ -13,6 +13,9 @@ in the spirit of Data Wrangler but starting small.
 - View **Parquet** files (`*.parquet`/`*.pq`) via `pandas.read_parquet` — the
   viewer opens them by default (needs `pyarrow` or `fastparquet` in the
   interpreter)
+- **Compressed** files are handled too — pandas infers the compression, so
+  `data.csv.gz`, `sales.tsv.bz2`, `t.parquet.zip`, etc. (`.gz`/`.bz2`/`.zip`/
+  `.xz`/`.zst`/`.tar` and `.tar.*`) open like their uncompressed forms
 
 - **Heatmap mode** (toolbar checkbox, on by default) — cells are colored by value,
   computed in pandas/matplotlib. The toolbar **Heatmap** checkbox is a tri-state

@@ -211,6 +211,12 @@ File path (`pythonRunner.ts`):
   pointing at the one provider), and pick the read expression by extension in
   `loadData` (`csvReadExpression` vs `parquetReadExpression`). Everything
   downstream is format-agnostic.
+- **Compression** is mostly free: pandas infers it from the path, so the
+  selectors just add brace-glob variants (`*.{csv,tsv}.{gz,bz2,zip,xz,zst,tar}`
+  …), and `loadData` strips the compression suffix before the parquet-vs-csv
+  check. The one catch: the CSV delimiter sniff must read the *decompressed*
+  sample (via `pandas.io.common.get_handle`), since sniffing raw gzip bytes
+  fails — with a `sep=None` pandas-sniff fallback.
 
 ## Workflow
 

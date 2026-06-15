@@ -27,10 +27,13 @@
         "displayName": "Data Viewer",
         "selector": [
           {
-            "filenamePattern": "*.csv"
+            "filenamePattern": "*.{csv,tsv}"
           },
           {
-            "filenamePattern": "*.tsv"
+            "filenamePattern": "*.{csv,tsv}.{gz,bz2,zip,xz,zst,tar}"
+          },
+          {
+            "filenamePattern": "*.{csv,tsv}.tar.{gz,xz,bz2}"
           }
         ],
         "priority": "option"
@@ -40,10 +43,13 @@
         "displayName": "Data Viewer",
         "selector": [
           {
-            "filenamePattern": "*.parquet"
+            "filenamePattern": "*.{parquet,pq}"
           },
           {
-            "filenamePattern": "*.pq"
+            "filenamePattern": "*.{parquet,pq}.{gz,bz2,zip,xz,zst,tar}"
+          },
+          {
+            "filenamePattern": "*.{parquet,pq}.tar.{gz,xz,bz2}"
           }
         ],
         "priority": "default"

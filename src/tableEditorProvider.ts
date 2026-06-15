@@ -62,7 +62,10 @@ export class TableEditorProvider implements vscode.CustomReadonlyEditorProvider<
    */
   private async loadData(uri: vscode.Uri, options: LoadOptions): Promise<TableData> {
     const name = uri.path.split('/').pop() ?? '';
-    const isParquet = /\.(parquet|pq)$/i.test(uri.path);
+    // Strip a trailing compression extension before checking the data format
+    // (pandas infers the compression itself), e.g. "data.parquet.gz".
+    const base = uri.path.replace(/\.(tar\.gz|tar\.xz|tar\.bz2|gz|bz2|zip|xz|zst|tar)$/i, '');
+    const isParquet = /\.(parquet|pq)$/i.test(base);
     const readExpr = isParquet ? parquetReadExpression(uri.fsPath) : csvReadExpression(uri.fsPath);
     const code = buildDumpCode(readExpr, options);
     for (;;) {

@@ -83,13 +83,21 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '    import json',
     '    import pandas as pd',
     '    def _read_csv(path):',
-    '        with open(path, "r", newline="", errors="replace") as f:',
-    '            sample = f.read(65536)',
+    // Sniff the delimiter on a *decompressed* sample (get_handle infers
+    // compression), constrained to common delimiters. Fall back to pandas\'
+    // own sniffer (sep=None) if anything goes wrong — it also decompresses.
+    // read_csv then infers compression from the extension by default.
+    '        _sep = None',
     '        try:',
-    '            sep = csv.Sniffer().sniff(sample, delimiters=",;\\t|").delimiter',
+    '            from pandas.io.common import get_handle',
+    '            with get_handle(path, "r", compression="infer", errors="replace") as _h:',
+    '                _sample = _h.handle.read(65536)',
+    '            _sep = csv.Sniffer().sniff(_sample, delimiters=",;\\t|").delimiter',
     '        except Exception:',
-    '            sep = ","',
-    '        return pd.read_csv(path, sep=sep)',
+    '            _sep = None',
+    '        if _sep is None:',
+    '            return pd.read_csv(path, sep=None, engine="python")',
+    '        return pd.read_csv(path, sep=_sep)',
     `    obj = ${objExpr}`,
     '    if isinstance(obj, pd.Series):',
     '        obj = obj.to_frame()',

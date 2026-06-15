@@ -62,7 +62,7 @@ durations = pd.DataFrame(
 durations
 
 # %%
-# Round-trip parquet format and see if dtypes are preserved
+# Write parquet format and see if dtypes are preserved, when reading directly
+# from file.
 parquet_path = 'cities.parquet'
 durations.to_parquet(parquet_path)
-durations_p = pd.read_parquet(parquet_path)

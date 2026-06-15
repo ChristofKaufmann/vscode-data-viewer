@@ -1,4 +1,12 @@
 node_modules/
 dist/
 *.vsix
+
+# Generated/compressed data artifacts (e.g. from sample-data/jup-vars.py)
 *.parquet
+*.gz
+*.bz2
+*.zip
+*.xz
+*.zst
+*.tar
