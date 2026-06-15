@@ -15,6 +15,7 @@ function payload(over: Partial<DumpPayload> = {}): DumpPayload {
     table: { columns: ['a', 'b'], index: [0, 1], data: [[1, 'x'], [2, 'y']] },
     colors: null,
     columnTypes: null,
+    filterError: null,
     ...over,
   };
 }
@@ -40,6 +41,11 @@ test('toTable prepends a null index color, aligning colors with rows', () => {
 
 test('toTable passes through null colors (no heatmap)', () => {
   assert.equal(toTable(payload({ colors: null })).colors, null);
+});
+
+test('toTable passes the filter error through', () => {
+  assert.equal(toTable(payload()).filterError, null);
+  assert.equal(toTable(payload({ filterError: "name 'nope' is not defined" })).filterError, "name 'nope' is not defined");
 });
 
 test('toTable passes column types through (already index-aligned)', () => {
@@ -171,6 +177,15 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(buildDumpCode('df', { sort: [{ column: -1, descending: true }] }), /_sort = \[\(-1, True\)\]/);
   assert.match(sorted, /if _c < 0:/);
   assert.match(sorted, /_c \+ _nlev/);
+  // Filtering: empty by default; a query() applied (before sort) when given,
+  // with the error captured rather than thrown.
+  assert.match(code, /_filter = ""/);
+  const filtered = buildDumpCode('df', { filter: 'founded > 1000 & last_census.notna()' });
+  assert.match(filtered, /_filter = "founded > 1000 & last_census\.notna\(\)"/);
+  assert.match(filtered, /obj\.query\(_filter, engine="python"\)/);
+  assert.match(filtered, /"filterError": %s/);
+  // The filter runs before the sort.
+  assert.ok(filtered.indexOf('obj.query(_filter') < filtered.indexOf('reset_index'));
   // Regression guards: no old single-name default, no dropped showIndex field.
   assert.doesNotMatch(code, /else "index"/);
   assert.doesNotMatch(code, /showIndex/);

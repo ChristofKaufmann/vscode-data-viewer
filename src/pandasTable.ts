@@ -29,6 +29,8 @@ export interface DumpPayload {
    * columns), or null if it couldn't be computed.
    */
   columnTypes: ColumnType[] | null;
+  /** pandas error message from a failed filter query, or null. */
+  filterError: string | null;
 }
 
 export interface DumpOptions {
@@ -46,6 +48,8 @@ export interface DumpOptions {
   colorizeCategorical?: boolean;
   /** Multi-column sort keys (primary first); columns are data-column positions, -1 = index. */
   sort?: SortKey[];
+  /** A pandas `DataFrame.query` expression; empty = no filter. */
+  filter?: string;
 }
 
 /**
@@ -71,6 +75,8 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
   const sortKeys = (options.sort ?? []).filter((k) => Number.isInteger(k.column) && k.column >= -1);
   const sortLiteral =
     '[' + sortKeys.map((k) => `(${k.column}, ${k.descending ? 'True' : 'False'})`).join(', ') + ']';
+  // A JSON string literal is a valid Python string literal (handles escaping).
+  const filterLiteral = JSON.stringify(options.filter ?? '');
   return [
     'def _VSCODE_dataviewer_dump():',
     '    import csv',
@@ -89,6 +95,16 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '        obj = obj.to_frame()',
     '    elif not isinstance(obj, pd.DataFrame):',
     '        obj = pd.DataFrame(obj)',
+    // Filter via DataFrame.query (bare column names, &/|, .isna(), `index`, …).
+    // engine="python" so string/datetime/categorical comparisons work. On a bad
+    // expression we report the error and leave the data unfiltered.
+    `    _filter = ${filterLiteral}`,
+    '    _filter_error = None',
+    '    if _filter:',
+    '        try:',
+    '            obj = obj.query(_filter, engine="python")',
+    '        except Exception as _e:',
+    '            _filter_error = str(_e)',
     // Stable multi-key sort. Each key is a data-column position, or -1 for the
     // index. reset_index materializes the index level(s) as leading columns so
     // index and columns sort uniformly; we then reorder the original frame by
@@ -241,8 +257,8 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '            column_types.append({"dtype": str(_col.dtype), "kind": _kind(_col)})',
     '    except Exception:',
     '        column_types = None',
-    '    print(\'{"total": %d, "indexName": %s, "table": %s, "colors": %s, "columnTypes": %s}\'',
-    '          % (total, json.dumps(index_name), table, json.dumps(colors), json.dumps(column_types)))',
+    '    print(\'{"total": %d, "indexName": %s, "table": %s, "colors": %s, "columnTypes": %s, "filterError": %s}\'',
+    '          % (total, json.dumps(index_name), table, json.dumps(colors), json.dumps(column_types), json.dumps(_filter_error)))',
     '',
     '_VSCODE_dataviewer_dump()',
     'del _VSCODE_dataviewer_dump',
@@ -288,6 +304,8 @@ export interface TableContent {
   colors: (string | null)[][] | null;
   /** Per-column dtype info aligned to `columns` (index first), or null. */
   columnTypes: ColumnType[] | null;
+  /** pandas error message from a failed filter query, or null. */
+  filterError: string | null;
   /** Status-bar notice when the data was truncated to MAX_ROWS. */
   note?: string;
 }
@@ -310,5 +328,12 @@ export function toTable(payload: DumpPayload): TableContent {
       ? `showing first ${table.data.length.toLocaleString()} of ${payload.total.toLocaleString()} rows`
       : undefined;
   // columnTypes already includes the index at [0], so it lines up with columns.
-  return { columns, rows, colors, columnTypes: payload.columnTypes, note };
+  return {
+    columns,
+    rows,
+    colors,
+    columnTypes: payload.columnTypes,
+    filterError: payload.filterError,
+    note,
+  };
 }

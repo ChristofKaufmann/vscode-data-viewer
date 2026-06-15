@@ -28,6 +28,10 @@ const columnwiseCheckbox = document.getElementById('columnwise') as HTMLInputEle
 const colorizeNumericCheckbox = document.getElementById('colorize-numeric') as HTMLInputElement;
 const colorizeDatetimeCheckbox = document.getElementById('colorize-datetime') as HTMLInputElement;
 const colorizeCategoricalCheckbox = document.getElementById('colorize-categorical') as HTMLInputElement;
+const filterToggle = document.getElementById('filter-toggle') as HTMLButtonElement;
+const filterInput = document.getElementById('filter-input') as HTMLInputElement;
+const filterClear = document.getElementById('filter-clear') as HTMLButtonElement;
+const filterError = document.getElementById('filter-error')!;
 
 // Column 0 is always the DataFrame index (sticky on the left); columns 1..n
 // are the data columns. Each row in a chunk follows the same layout.
@@ -40,6 +44,8 @@ let columnTypes: ColumnType[] | null = null;
 // Multi-column sort, primary first; `column` is a 0-based data-column position
 // (webview column index minus 1, since column 0 is the index). Per-view only.
 let sortKeys: SortKey[] = [];
+// pandas query expression; per-view (not persisted), applied on the host.
+let currentFilter = '';
 
 // Widths the user set explicitly (drag or auto-fit), keyed by column header so
 // they survive a refresh even if columns are added/removed/reordered. Columns
@@ -85,6 +91,7 @@ window.addEventListener('message', (event: MessageEvent<HostMessage>) => {
           ? 'Empty'
           : `${rowCount.toLocaleString()} rows × ${dataCols.toLocaleString()} columns` +
             (message.note ? ` — ${message.note}` : '');
+      showFilterError(message.filterError);
       setRefreshing(false);
       render();
       break;
@@ -121,6 +128,7 @@ function requestReload(): void {
     colorizeDatetime: currentColorizeDatetime,
     colorizeCategorical: currentColorizeCategorical,
     sort: sortKeys,
+    filter: currentFilter,
   });
 }
 
@@ -221,6 +229,48 @@ document.addEventListener('keydown', (e) => {
     setPanelOpen(false);
   }
 });
+
+// Filter bar: the funnel toggles it; the query is applied (reload) on Enter.
+filterToggle.addEventListener('click', () => {
+  const open = !document.body.classList.contains('filtering');
+  document.body.classList.toggle('filtering', open);
+  filterToggle.setAttribute('aria-expanded', String(open));
+  if (open) {
+    filterInput.focus();
+  }
+});
+
+function applyFilter(): void {
+  const next = filterInput.value.trim();
+  if (next === currentFilter) {
+    return;
+  }
+  currentFilter = next;
+  filterToggle.classList.toggle('active', currentFilter !== '');
+  requestReload();
+}
+
+filterInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    applyFilter();
+  }
+});
+filterClear.addEventListener('click', () => {
+  filterInput.value = '';
+  applyFilter();
+  filterInput.focus();
+});
+
+/** Shows/clears the filter error from the last load (data shown unfiltered). */
+function showFilterError(message: string | null): void {
+  filterError.textContent = message ?? '';
+  filterInput.classList.toggle('error', message !== null);
+  if (message) {
+    // Reveal the bar so the error is visible next to the input.
+    document.body.classList.add('filtering');
+    filterToggle.setAttribute('aria-expanded', 'true');
+  }
+}
 
 let renderQueued = false;
 function scheduleRender(): void {
@@ -463,4 +513,5 @@ vscode.postMessage({
   colorizeDatetime: currentColorizeDatetime,
   colorizeCategorical: currentColorizeCategorical,
   sort: sortKeys,
+  filter: currentFilter,
 });

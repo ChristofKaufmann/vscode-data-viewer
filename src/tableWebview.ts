@@ -97,6 +97,7 @@ function getHtml(
 <body>
   <div id="toolbar">
     <button id="refresh" title="Reload data from its source"><span class="icon">↻</span></button>
+    <button id="filter-toggle" title="Filter rows" aria-expanded="false"><span class="codicon codicon-filter"></span></button>
     <label id="heatmap-toggle" title="Color cells by value">
       <input type="checkbox" id="heatmap"${settings.colorizeNumeric && settings.colorizeDatetime && settings.colorizeCategorical ? ' checked' : ''}> Heatmap
     </label>
@@ -127,6 +128,12 @@ function getHtml(
         </label>
       </div>
     </div>
+  </div>
+  <div id="filter-bar">
+    <input type="text" id="filter-input" spellcheck="false" autocomplete="off"
+           placeholder="Filter rows, e.g.  (founded &lt; 0 | founded &gt; 1000) &amp; last_census.notna() &amp; index != 0">
+    <button id="filter-clear" title="Clear filter"><span class="codicon codicon-close"></span></button>
+    <span id="filter-error"></span>
   </div>
   <div id="scroller">
     <div id="header"></div>

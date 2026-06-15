@@ -23,6 +23,7 @@ function makeData(rows: number, tag = '', colors: TableData['colors'] = null): T
     rows: Array.from({ length: rows }, (_, i) => [String(i), `v${tag}${i}`]),
     colors,
     columnTypes: null,
+    filterError: null,
   };
 }
 
@@ -179,6 +180,7 @@ test('forwards all heatmap options from ready/refresh to load', async () => {
     colorizeDatetime: true,
     colorizeCategorical: true,
     sort: [],
+    filter: '',
   });
   await flush();
   handle({
@@ -190,6 +192,7 @@ test('forwards all heatmap options from ready/refresh to load', async () => {
     colorizeDatetime: false,
     colorizeCategorical: false,
     sort: [{ column: 1, descending: true }],
+    filter: 'a > 1',
   });
   await flush();
 
@@ -202,6 +205,7 @@ test('forwards all heatmap options from ready/refresh to load', async () => {
       colorizeDatetime: true,
       colorizeCategorical: true,
       sort: [],
+      filter: '',
     },
     {
       colormap: 'coolwarm',
@@ -211,6 +215,7 @@ test('forwards all heatmap options from ready/refresh to load', async () => {
       colorizeDatetime: false,
       colorizeCategorical: false,
       sort: [{ column: 1, descending: true }],
+      filter: 'a > 1',
     },
   ]);
 });

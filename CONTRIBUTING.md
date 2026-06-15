@@ -144,6 +144,19 @@ mixed-type column just stays unsorted). Sort is **per-view**: it rides on
 `ready`/`refresh`, not the persisted settings, so it survives a refresh but
 resets on a new variable/file.
 
+## Filtering
+
+Also done in **pandas**: `obj.query(expr, engine="python")` in `buildDumpCode`,
+applied **before** sort and head (so the row count reflects the filtered total).
+`engine="python"` is deliberate — it's the engine that supports string, datetime
+and categorical comparisons plus column methods like `.isna()`/`.notna()`. The
+expression uses bare column names (not `df.col`), which resolve identically for
+files and kernel variables — that's why we don't use the variable name or `eval`.
+Unlike sort's silent fallback, a bad expression is **surfaced**: the query runs in
+its own `try/except`, the data is left unfiltered, and the pandas error string
+rides back in the payload as `filterError` for the webview to show inline. Filter
+is per-view like sort (rides on `ready`/`refresh`, not persisted).
+
 ## Webview specifics
 
 - **Pure modules are the testable core.** Logic lives in DOM-free/vscode-free

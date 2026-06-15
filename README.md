@@ -34,6 +34,11 @@ in the spirit of Data Wrangler but starting small.
   included) to cycle no-sort → ascending → descending. Clicking another column
   adds it as the new primary key (a stable multi-column sort, done by pandas, so
   ordered categoricals sort by rank); a priority number shows the order
+- **Filtering** — the funnel button opens a filter bar taking a pandas
+  `DataFrame.query` expression with bare column names, e.g.
+  `(founded < 0 | founded > 1000) & last_census.notna()` — supports `&`/`|`,
+  comparisons, `.isna()`/`.notna()`, ordered-categorical comparisons, and `index`;
+  a bad expression shows the error inline and leaves the data unfiltered
 - Adjustable column widths (drag the header edge, double-click to auto-fit)
 - First row is treated as the header
 - Each column header (the index too) shows a dimmed **dtype glyph** — codicon
@@ -125,7 +130,5 @@ identical behavior for files and variables.
 
 ## Ideas for later
 
-- Filtering
 - Parquet / Excel / JSON Lines support
 - Column statistics
-- Header on/off toggle

@@ -30,9 +30,9 @@ export interface HeatmapChoices {
 }
 
 export type WebviewMessage =
-  // `sort` is per-view (not persisted), so it rides on ready/refresh, not settings.
-  | ({ type: 'ready'; sort: SortKey[] } & HeatmapChoices)
-  | ({ type: 'refresh'; sort: SortKey[] } & HeatmapChoices)
+  // `sort`/`filter` are per-view (not persisted), so they ride on ready/refresh.
+  | ({ type: 'ready'; sort: SortKey[]; filter: string } & HeatmapChoices)
+  | ({ type: 'refresh'; sort: SortKey[]; filter: string } & HeatmapChoices)
   | { type: 'rows'; chunk: number }
   /** Persist heatmap UI choices so they carry over to the next view. */
   | {
@@ -60,6 +60,8 @@ export type HostMessage =
       sampleColors: (string | null)[][] | null;
       /** Per-column dtype info aligned to `columns` (index first), or null. */
       columnTypes: ColumnType[] | null;
+      /** pandas error from a failed filter query (data shown unfiltered), or null. */
+      filterError: string | null;
     }
   | {
       type: 'rows';

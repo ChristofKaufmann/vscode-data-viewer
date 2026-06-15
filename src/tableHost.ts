@@ -11,6 +11,8 @@ export interface TableData {
   colors: (string | null)[][] | null;
   /** Per-column dtype info aligned to `columns` (index first), or null. */
   columnTypes: ColumnType[] | null;
+  /** pandas error from a failed filter query (data shown unfiltered), or null. */
+  filterError: string | null;
 }
 
 /** Parameters that affect how the data is (re)loaded, set from the webview UI. */
@@ -29,6 +31,8 @@ export interface LoadOptions {
   colorizeCategorical?: boolean;
   /** Multi-column sort keys (primary first); empty/undefined = unsorted. */
   sort?: SortKey[];
+  /** pandas query filter expression; empty/undefined = unfiltered. */
+  filter?: string;
 }
 
 export interface TableHostDeps {
@@ -65,6 +69,7 @@ export function createTableHost(deps: TableHostDeps): (message: WebviewMessage) 
         sample: data.rows.slice(0, 100),
         sampleColors: data.colors ? data.colors.slice(0, 100) : null,
         columnTypes: data.columnTypes,
+        filterError: data.filterError,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -87,6 +92,7 @@ export function createTableHost(deps: TableHostDeps): (message: WebviewMessage) 
           colorizeDatetime: message.colorizeDatetime,
           colorizeCategorical: message.colorizeCategorical,
           sort: message.sort,
+          filter: message.filter,
         });
         break;
       case 'rows': {
