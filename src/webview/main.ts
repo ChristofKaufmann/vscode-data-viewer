@@ -257,11 +257,11 @@ function initLayout(sample: string[][]): void {
  */
 function headerPad(c: number): number {
   const glyphPad = columnTypes?.[c] ? 2 : 0;
-  const sortPad = c >= 1 ? 2 : 0;
-  return glyphPad + sortPad;
+  // Every column (the index too) carries a sort handle.
+  return glyphPad + 2;
 }
 
-/** (Re)builds the header row: type glyph + name + (data columns) sort control. */
+/** (Re)builds the header row: type glyph + name + a sort control per column. */
 function buildHeader(): void {
   headerEl.replaceChildren();
   for (let c = 0; c < columns.length; c++) {
@@ -286,10 +286,8 @@ function buildHeader(): void {
     cell.appendChild(label);
     cell.title = columns[c];
 
-    // Right side: sort control on data columns (the index isn't sortable yet).
-    if (c >= 1) {
-      cell.appendChild(buildSortControl(c));
-    }
+    // Right side: sort control (every column, including the index).
+    cell.appendChild(buildSortControl(c));
 
     const handle = document.createElement('div');
     handle.className = 'resize-handle';
@@ -303,9 +301,9 @@ function buildHeader(): void {
   }
 }
 
-/** The clickable sort handle for the data column at webview index `c`. */
+/** The clickable sort handle for the column at webview index `c` (0 = index). */
 function buildSortControl(c: number): HTMLElement {
-  const dataColumn = c - 1;
+  const dataColumn = c === 0 ? -1 : c - 1;
   const { dir, rank } = sortState(sortKeys, dataColumn);
   const icon = dir === 'asc' ? 'arrow-down' : dir === 'desc' ? 'arrow-up' : 'circle-small-filled';
 

@@ -44,7 +44,7 @@ export interface DumpOptions {
   colorizeDatetime?: boolean;
   /** Color ordered categorical columns by their rank (default true). */
   colorizeCategorical?: boolean;
-  /** Multi-column sort keys (primary first); columns are data-column positions. */
+  /** Multi-column sort keys (primary first); columns are data-column positions, -1 = index. */
   sort?: SortKey[];
 }
 
@@ -65,9 +65,10 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
   const colorizeNumeric = options.colorizeNumeric ?? true;
   const colorizeDatetime = options.colorizeDatetime ?? true;
   const colorizeCategorical = options.colorizeCategorical ?? true;
-  // Sort keys become a Python list of (position, descending) tuples. Filter to
-  // safe integer positions so the literal can't be anything but numbers/bools.
-  const sortKeys = (options.sort ?? []).filter((k) => Number.isInteger(k.column) && k.column >= 0);
+  // Sort keys become a Python list of (position, descending) tuples (-1 = the
+  // index). Filter to safe integers so the literal can't be anything but
+  // numbers/bools.
+  const sortKeys = (options.sort ?? []).filter((k) => Number.isInteger(k.column) && k.column >= -1);
   const sortLiteral =
     '[' + sortKeys.map((k) => `(${k.column}, ${k.descending ? 'True' : 'False'})`).join(', ') + ']';
   return [
@@ -88,20 +89,28 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '        obj = obj.to_frame()',
     '    elif not isinstance(obj, pd.DataFrame):',
     '        obj = pd.DataFrame(obj)',
-    // Stable multi-column sort by data-column position. Relabel columns to
-    // unique integers first so duplicate names stay unambiguous, then restore.
+    // Stable multi-key sort. Each key is a data-column position, or -1 for the
+    // index. reset_index materializes the index level(s) as leading columns so
+    // index and columns sort uniformly; we then reorder the original frame by
+    // the resulting row positions (preserving its index, names and dtypes).
     // Left unsorted if the keys don't apply (e.g. uncomparable mixed-type column).
     `    _sort = ${sortLiteral}`,
     '    if _sort:',
     '        try:',
-    '            _sorted = obj.copy()',
-    '            _orig_cols = _sorted.columns',
-    '            _sorted.columns = range(_sorted.shape[1])',
-    '            _sorted = _sorted.sort_values(by=[_c for _c, _d in _sort],',
-    '                                          ascending=[not _d for _c, _d in _sort],',
-    '                                          kind="stable", na_position="last")',
-    '            _sorted.columns = _orig_cols',
-    '            obj = _sorted',
+    '            _nlev = obj.index.nlevels',
+    '            _si = obj.reset_index(drop=False, allow_duplicates=True)',
+    '            _si.columns = range(_si.shape[1])',
+    '            _by = []',
+    '            _asc = []',
+    '            for _c, _d in _sort:',
+    '                if _c < 0:',
+    '                    _by.extend(range(_nlev))',
+    '                    _asc.extend([not _d] * _nlev)',
+    '                else:',
+    '                    _by.append(_c + _nlev)',
+    '                    _asc.append(not _d)',
+    '            _si = _si.sort_values(by=_by, ascending=_asc, kind="stable", na_position="last")',
+    '            obj = obj.iloc[_si.index.to_numpy()]',
     '        except Exception:',
     '            pass',
     '    total = len(obj)',

@@ -130,15 +130,19 @@ hardcoded LUT / icon list. If you change the offered colormaps in
 Like the heatmap, sorting is done in **pandas** (a `sort_values` in
 `buildDumpCode`), so it's a reload and gets dtype-correct ordering for free —
 ordered categoricals sort by rank, not alphabetically. The webview holds an
-ordered `SortKey[]` (primary first; `column` is a 0-based *data*-column
-position) and the cycle logic lives in the pure `webview/sorting.ts`
-(`cycleSort`/`sortState`). One stable multi-key `sort_values(by, ascending=[...])`
-covers mixed asc/desc directions — no need to sort sequentially. Columns are
-relabelled to integer positions before sorting so duplicate names stay
-unambiguous, and the whole thing is wrapped in `try/except` (an uncomparable
+ordered `SortKey[]` (primary first; `column` is a 0-based *data*-column position,
+or **-1 for the index**) and the cycle logic lives in the pure `webview/sorting.ts`
+(`cycleSort`/`sortState`). One stable multi-key sort covers mixed asc/desc
+directions — no need to sort sequentially. The Python `reset_index`es so the
+index level(s) become leading columns, relabels every column to an integer
+position (duplicate-name safe), runs `sort_values(by, ascending=[...],
+kind="stable")`, then reorders the *original* frame by the resulting row
+positions with `.iloc` — that preserves the index, its names and all dtypes. An
+index key (-1) expands to all its levels (so a MultiIndex sorts lexicographically,
+like `sort_index`). The whole thing is wrapped in `try/except` (an uncomparable
 mixed-type column just stays unsorted). Sort is **per-view**: it rides on
 `ready`/`refresh`, not the persisted settings, so it survives a refresh but
-resets on a new variable/file. The index column isn't sortable yet.
+resets on a new variable/file.
 
 ## Webview specifics
 

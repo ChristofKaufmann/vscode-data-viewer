@@ -6,7 +6,7 @@ export const CHUNK_SIZE = 500;
 
 /** One key of a (possibly multi-column) sort, primary first. */
 export interface SortKey {
-  /** 0-based position among the data columns (the index is not sortable yet). */
+  /** 0-based position among the data columns, or -1 for the index column. */
   column: number;
   descending: boolean;
 }

@@ -160,12 +160,17 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   // Per-column dtype + kind are computed for the type glyphs.
   assert.match(code, /"columnTypes": %s/);
   assert.match(code, /def _kind\(_x\):/);
-  // Sorting: empty by default; a stable multi-key sort_values when keys given.
+  // Sorting: empty by default; a stable multi-key sort when keys are given.
   assert.match(code, /_sort = \[\]/);
   const sorted = buildDumpCode('df', { sort: [{ column: 2, descending: true }, { column: 0, descending: false }] });
   assert.match(sorted, /_sort = \[\(2, True\), \(0, False\)\]/);
-  assert.match(sorted, /sort_values\(by=\[_c for _c, _d in _sort\]/);
+  assert.match(sorted, /reset_index\(drop=False, allow_duplicates=True\)/);
+  assert.match(sorted, /sort_values\(by=_by, ascending=_asc/);
   assert.match(sorted, /kind="stable", na_position="last"/);
+  // The index sorts as key -1 (its level(s) materialized at the front).
+  assert.match(buildDumpCode('df', { sort: [{ column: -1, descending: true }] }), /_sort = \[\(-1, True\)\]/);
+  assert.match(sorted, /if _c < 0:/);
+  assert.match(sorted, /_c \+ _nlev/);
   // Regression guards: no old single-name default, no dropped showIndex field.
   assert.doesNotMatch(code, /else "index"/);
   assert.doesNotMatch(code, /showIndex/);

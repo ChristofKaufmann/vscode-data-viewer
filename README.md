@@ -30,10 +30,10 @@ in the spirit of Data Wrangler but starting small.
 - Toolbar with a **refresh** button that reloads from the original source (re-runs
   `read_csv` for files, re-queries the kernel for variables — picking up edits and
   surviving a kernel restart)
-- **Sorting** — click the handle on the right of a column header to cycle
-  no-sort → ascending → descending. Clicking another column adds it as the new
-  primary key (a stable multi-column sort, done by pandas, so ordered
-  categoricals sort by rank); a priority number shows the order
+- **Sorting** — click the handle on the right of any column header (the index
+  included) to cycle no-sort → ascending → descending. Clicking another column
+  adds it as the new primary key (a stable multi-column sort, done by pandas, so
+  ordered categoricals sort by rank); a priority number shows the order
 - Adjustable column widths (drag the header edge, double-click to auto-fit)
 - First row is treated as the header
 - Each column header (the index too) shows a dimmed **dtype glyph** — codicon
@@ -125,7 +125,6 @@ identical behavior for files and variables.
 
 ## Ideas for later
 
-- Sorting by the index column (currently data columns only)
 - Filtering
 - Parquet / Excel / JSON Lines support
 - Column statistics
