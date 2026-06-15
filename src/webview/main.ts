@@ -1,8 +1,9 @@
-import { CHUNK_SIZE, ColumnType, HostMessage, WebviewMessage } from '../shared/protocol';
+import { CHUNK_SIZE, ColumnType, HostMessage, SortKey, WebviewMessage } from '../shared/protocol';
 import { autoWidth, cellClass, clampDragWidth, isNumericColumn, maxChars } from './columns';
 import { idealTextColor } from './contrast';
 import { steppedGradient } from './colormaps';
 import { dtypeGlyph } from './dtypes';
+import { cycleSort, sortState } from './sorting';
 
 declare function acquireVsCodeApi(): { postMessage(message: WebviewMessage): void };
 
@@ -36,6 +37,9 @@ let gridTemplate = '';
 let numericCols: boolean[] = [];
 let colWidths: number[] = [];
 let columnTypes: ColumnType[] | null = null;
+// Multi-column sort, primary first; `column` is a 0-based data-column position
+// (webview column index minus 1, since column 0 is the index). Per-view only.
+let sortKeys: SortKey[] = [];
 
 // Widths the user set explicitly (drag or auto-fit), keyed by column header so
 // they survive a refresh even if columns are added/removed/reordered. Columns
@@ -116,6 +120,7 @@ function requestReload(): void {
     colorizeNumeric: currentColorizeNumeric,
     colorizeDatetime: currentColorizeDatetime,
     colorizeCategorical: currentColorizeCategorical,
+    sort: sortKeys,
   });
 }
 
@@ -243,12 +248,20 @@ function initLayout(sample: string[][]): void {
     colWidths.push(manual ?? autoWidth(maxChars(columns[c], values) + glyphPad));
   }
 
+  buildHeader();
+  applyLayout();
+}
+
+/** (Re)builds the header row: type glyph + name + (data columns) sort control. */
+function buildHeader(): void {
   headerEl.replaceChildren();
   for (let c = 0; c < columns.length; c++) {
     const cell = document.createElement('div');
     cell.className = classFor('cell head', c);
-    // A dimmed type glyph (with the full dtype as tooltip) before the name,
-    // including the index column.
+
+    // Left side: dimmed dtype glyph (full dtype as tooltip) + the column name.
+    const label = document.createElement('span');
+    label.className = 'head-label';
     const type = columnTypes?.[c];
     if (type) {
       const spec = dtypeGlyph(type.kind);
@@ -258,10 +271,17 @@ function initLayout(sample: string[][]): void {
         glyph.textContent = spec.text;
       }
       glyph.title = type.dtype;
-      cell.appendChild(glyph);
+      label.appendChild(glyph);
     }
-    cell.appendChild(document.createTextNode(columns[c]));
+    label.appendChild(document.createTextNode(columns[c]));
+    cell.appendChild(label);
     cell.title = columns[c];
+
+    // Right side: sort control on data columns (the index isn't sortable yet).
+    if (c >= 1) {
+      cell.appendChild(buildSortControl(c));
+    }
+
     const handle = document.createElement('div');
     handle.className = 'resize-handle';
     handle.addEventListener('pointerdown', (e) => startResize(e, c));
@@ -272,8 +292,38 @@ function initLayout(sample: string[][]): void {
     cell.appendChild(handle);
     headerEl.appendChild(cell);
   }
+}
 
-  applyLayout();
+/** The clickable sort handle for the data column at webview index `c`. */
+function buildSortControl(c: number): HTMLElement {
+  const dataColumn = c - 1;
+  const { dir, rank } = sortState(sortKeys, dataColumn);
+  const icon = dir === 'asc' ? 'arrow-down' : dir === 'desc' ? 'arrow-up' : 'circle-small-filled';
+
+  const btn = document.createElement('span');
+  btn.className = dir === 'none' ? 'sort-btn inactive' : 'sort-btn';
+  btn.title =
+    dir === 'none' ? 'Sort ascending' : dir === 'asc' ? 'Sort descending' : 'Remove from sort';
+
+  const glyph = document.createElement('span');
+  glyph.className = `codicon codicon-${icon}`;
+  btn.appendChild(glyph);
+
+  // Show the 1-based priority only when more than one column is sorted.
+  if (rank > 0 && sortKeys.length > 1) {
+    const badge = document.createElement('span');
+    badge.className = 'sort-rank';
+    badge.textContent = String(rank);
+    btn.appendChild(badge);
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sortKeys = cycleSort(sortKeys, dataColumn);
+    buildHeader(); // instant feedback while the sorted data reloads
+    requestReload();
+  });
+  return btn;
 }
 
 function classFor(base: string, col: number): string {
@@ -405,4 +455,5 @@ vscode.postMessage({
   colorizeNumeric: currentColorizeNumeric,
   colorizeDatetime: currentColorizeDatetime,
   colorizeCategorical: currentColorizeCategorical,
+  sort: sortKeys,
 });

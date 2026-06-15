@@ -4,7 +4,7 @@
  * side that turns the payload into table columns/rows. Used both by the
  * Jupyter kernel path (variables) and the subprocess path (CSV files).
  */
-import { ColumnType } from './shared/protocol';
+import { ColumnType, SortKey } from './shared/protocol';
 
 export const MAX_ROWS = 100_000;
 
@@ -31,7 +31,7 @@ export interface DumpPayload {
   columnTypes: ColumnType[] | null;
 }
 
-export interface HeatmapOptions {
+export interface DumpOptions {
   /** matplotlib colormap name. */
   colormap?: string;
   /** Symmetric range around 0 (vmax = max(|vmin|, |vmax|), vmin = -vmax). */
@@ -44,6 +44,8 @@ export interface HeatmapOptions {
   colorizeDatetime?: boolean;
   /** Color ordered categorical columns by their rank (default true). */
   colorizeCategorical?: boolean;
+  /** Multi-column sort keys (primary first); columns are data-column positions. */
+  sort?: SortKey[];
 }
 
 /**
@@ -56,13 +58,18 @@ export interface HeatmapOptions {
  * never distort the numeric range). `columnwise` instead ranges each column on
  * its own; `center` makes a range symmetric around 0.
  */
-export function buildDumpCode(objExpr: string, options: HeatmapOptions = {}): string {
+export function buildDumpCode(objExpr: string, options: DumpOptions = {}): string {
   const cmap = options.colormap ?? HEATMAP_CMAP;
   const center = options.center ?? false;
   const columnwise = options.columnwise ?? false;
   const colorizeNumeric = options.colorizeNumeric ?? true;
   const colorizeDatetime = options.colorizeDatetime ?? true;
   const colorizeCategorical = options.colorizeCategorical ?? true;
+  // Sort keys become a Python list of (position, descending) tuples. Filter to
+  // safe integer positions so the literal can't be anything but numbers/bools.
+  const sortKeys = (options.sort ?? []).filter((k) => Number.isInteger(k.column) && k.column >= 0);
+  const sortLiteral =
+    '[' + sortKeys.map((k) => `(${k.column}, ${k.descending ? 'True' : 'False'})`).join(', ') + ']';
   return [
     'def _VSCODE_dataviewer_dump():',
     '    import csv',
@@ -81,6 +88,22 @@ export function buildDumpCode(objExpr: string, options: HeatmapOptions = {}): st
     '        obj = obj.to_frame()',
     '    elif not isinstance(obj, pd.DataFrame):',
     '        obj = pd.DataFrame(obj)',
+    // Stable multi-column sort by data-column position. Relabel columns to
+    // unique integers first so duplicate names stay unambiguous, then restore.
+    // Left unsorted if the keys don't apply (e.g. uncomparable mixed-type column).
+    `    _sort = ${sortLiteral}`,
+    '    if _sort:',
+    '        try:',
+    '            _sorted = obj.copy()',
+    '            _orig_cols = _sorted.columns',
+    '            _sorted.columns = range(_sorted.shape[1])',
+    '            _sorted = _sorted.sort_values(by=[_c for _c, _d in _sort],',
+    '                                          ascending=[not _d for _c, _d in _sort],',
+    '                                          kind="stable", na_position="last")',
+    '            _sorted.columns = _orig_cols',
+    '            obj = _sorted',
+    '        except Exception:',
+    '            pass',
     '    total = len(obj)',
     `    head = obj.head(${MAX_ROWS}).copy()`,
     // index.names works for both a regular Index (one element) and a

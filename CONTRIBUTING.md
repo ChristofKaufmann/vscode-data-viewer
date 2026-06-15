@@ -18,7 +18,7 @@ module map, see the [README](README.md).
 
 ## Data flow
 
-```
+```text
 file  → tableEditorProvider.loadData ─┐
                                       ├─ buildDumpCode → run Python → JSON payload
 variable → jupyterVariableViewer ─────┘                                   │
@@ -124,6 +124,21 @@ Range grouping (in `buildDumpCode`):
 UI niceties: the colormap preview swatch (`colormaps.ts`) and dtype glyphs use a
 hardcoded LUT / icon list. If you change the offered colormaps in
 `tableWebview.ts`, regenerate `CMAP_STOPS` from matplotlib (16 stops per map).
+
+## Sorting
+
+Like the heatmap, sorting is done in **pandas** (a `sort_values` in
+`buildDumpCode`), so it's a reload and gets dtype-correct ordering for free —
+ordered categoricals sort by rank, not alphabetically. The webview holds an
+ordered `SortKey[]` (primary first; `column` is a 0-based *data*-column
+position) and the cycle logic lives in the pure `webview/sorting.ts`
+(`cycleSort`/`sortState`). One stable multi-key `sort_values(by, ascending=[...])`
+covers mixed asc/desc directions — no need to sort sequentially. Columns are
+relabelled to integer positions before sorting so duplicate names stay
+unambiguous, and the whole thing is wrapped in `try/except` (an uncomparable
+mixed-type column just stays unsorted). Sort is **per-view**: it rides on
+`ready`/`refresh`, not the persisted settings, so it survives a refresh but
+resets on a new variable/file. The index column isn't sortable yet.
 
 ## Webview specifics
 

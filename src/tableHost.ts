@@ -1,4 +1,4 @@
-import { CHUNK_SIZE, ColumnType, HostMessage, WebviewMessage } from './shared/protocol';
+import { CHUNK_SIZE, ColumnType, HostMessage, SortKey, WebviewMessage } from './shared/protocol';
 
 export interface TableData {
   /** Label shown in the status bar (file or variable name). */
@@ -27,6 +27,8 @@ export interface LoadOptions {
   colorizeDatetime?: boolean;
   /** Color ordered categorical columns by rank. */
   colorizeCategorical?: boolean;
+  /** Multi-column sort keys (primary first); empty/undefined = unsorted. */
+  sort?: SortKey[];
 }
 
 export interface TableHostDeps {
@@ -84,6 +86,7 @@ export function createTableHost(deps: TableHostDeps): (message: WebviewMessage) 
           colorizeNumeric: message.colorizeNumeric,
           colorizeDatetime: message.colorizeDatetime,
           colorizeCategorical: message.colorizeCategorical,
+          sort: message.sort,
         });
         break;
       case 'rows': {

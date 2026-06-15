@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import type { Jupyter, Kernel } from '@vscode/jupyter-extension';
-import { buildDumpCode, DumpPayload, HeatmapOptions, parsePayload, toTable } from './pandasTable';
+import { buildDumpCode, DumpOptions, DumpPayload, parsePayload, toTable } from './pandasTable';
 import { configureTableWebview, LoadOptions, TableData } from './tableWebview';
 
 /**
@@ -116,7 +116,7 @@ async function openVariable(
 async function fetchVariable(
   kernel: Kernel,
   name: string,
-  options: HeatmapOptions,
+  options: DumpOptions,
   token: vscode.CancellationToken
 ): Promise<DumpPayload> {
   let stdout = '';

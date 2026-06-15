@@ -178,6 +178,7 @@ test('forwards all heatmap options from ready/refresh to load', async () => {
     colorizeNumeric: true,
     colorizeDatetime: true,
     colorizeCategorical: true,
+    sort: [],
   });
   await flush();
   handle({
@@ -188,6 +189,7 @@ test('forwards all heatmap options from ready/refresh to load', async () => {
     colorizeNumeric: true,
     colorizeDatetime: false,
     colorizeCategorical: false,
+    sort: [{ column: 1, descending: true }],
   });
   await flush();
 
@@ -199,6 +201,7 @@ test('forwards all heatmap options from ready/refresh to load', async () => {
       colorizeNumeric: true,
       colorizeDatetime: true,
       colorizeCategorical: true,
+      sort: [],
     },
     {
       colormap: 'coolwarm',
@@ -207,6 +210,7 @@ test('forwards all heatmap options from ready/refresh to load', async () => {
       colorizeNumeric: true,
       colorizeDatetime: false,
       colorizeCategorical: false,
+      sort: [{ column: 1, descending: true }],
     },
   ]);
 });

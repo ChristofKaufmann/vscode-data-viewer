@@ -4,6 +4,13 @@
 
 export const CHUNK_SIZE = 500;
 
+/** One key of a (possibly multi-column) sort, primary first. */
+export interface SortKey {
+  /** 0-based position among the data columns (the index is not sortable yet). */
+  column: number;
+  descending: boolean;
+}
+
 /** A column's pandas dtype string and a coarse kind used to pick a glyph. */
 export interface ColumnType {
   /** Full dtype string for the tooltip, e.g. "float64", "datetime64[ns]". */
@@ -23,8 +30,9 @@ export interface HeatmapChoices {
 }
 
 export type WebviewMessage =
-  | ({ type: 'ready' } & HeatmapChoices)
-  | ({ type: 'refresh' } & HeatmapChoices)
+  // `sort` is per-view (not persisted), so it rides on ready/refresh, not settings.
+  | ({ type: 'ready'; sort: SortKey[] } & HeatmapChoices)
+  | ({ type: 'refresh'; sort: SortKey[] } & HeatmapChoices)
   | { type: 'rows'; chunk: number }
   /** Persist heatmap UI choices so they carry over to the next view. */
   | {
