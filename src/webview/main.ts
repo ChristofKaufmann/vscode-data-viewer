@@ -1,6 +1,7 @@
 import { CHUNK_SIZE, HostMessage, WebviewMessage } from '../shared/protocol';
 import { autoWidth, cellClass, clampDragWidth, isNumericColumn, maxChars } from './columns';
 import { idealTextColor } from './contrast';
+import { steppedGradient } from './colormaps';
 
 declare function acquireVsCodeApi(): { postMessage(message: WebviewMessage): void };
 
@@ -19,6 +20,7 @@ const heatmapCheckbox = document.getElementById('heatmap') as HTMLInputElement;
 const settingsBtn = document.getElementById('heatmap-settings') as HTMLButtonElement;
 const heatmapPanel = document.getElementById('heatmap-panel')!;
 const colormapSelect = document.getElementById('colormap') as HTMLSelectElement;
+const colormapPreview = document.getElementById('colormap-preview')!;
 const centerCheckbox = document.getElementById('center') as HTMLInputElement;
 const columnwiseCheckbox = document.getElementById('columnwise') as HTMLInputElement;
 const colorizeNumericCheckbox = document.getElementById('colorize-numeric') as HTMLInputElement;
@@ -161,9 +163,16 @@ heatmapCheckbox.addEventListener('change', () => {
 });
 syncMasterCheckbox();
 
+/** Paints the preview swatch for the currently selected colormap. */
+function updateColormapPreview(): void {
+  colormapPreview.style.background = steppedGradient(currentColormap);
+}
+updateColormapPreview();
+
 // Colormap and centering both recompute colors in Python, so they reload.
 colormapSelect.addEventListener('change', () => {
   currentColormap = colormapSelect.value;
+  updateColormapPreview();
   persistSettings();
   requestReload();
 });

@@ -106,7 +106,10 @@ function getHtml(
         </label>
         <label class="field">
           <span>Colormap</span>
-          <select id="colormap">${colormapOptions}</select>
+          <div class="colormap-row">
+            <select id="colormap">${colormapOptions}</select>
+            <span id="colormap-preview" aria-hidden="true"></span>
+          </div>
         </label>
         <label class="field-check" title="Make the value range symmetric around 0">
           <input type="checkbox" id="center"${settings.center ? ' checked' : ''}> Center at 0

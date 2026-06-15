@@ -17,7 +17,8 @@ in the spirit of Data Wrangler but starting small.
   **Colorize datetime** (dates colored by timestamp). Numeric and datetime columns
   form separate value-range groups, so timestamps never distort the numeric range.
   A gear button opens the popover with those toggles plus a **colormap** selector
-  (viridis, plasma, coolwarm, …), a **Center at 0** toggle (symmetric range, useful
+  (viridis, plasma, coolwarm, …) with a small preview swatch, a **Center at 0**
+  toggle (symmetric range, useful
   with diverging colormaps), and a **Columnwise** toggle (a separate vmin/vmax per
   column instead of one per group). Non-numeric/NaN/NaT cells stay uncolored;
   changing any option recomputes colors in Python on reload. All choices are
