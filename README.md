@@ -32,9 +32,10 @@ in the spirit of Data Wrangler but starting small.
   surviving a kernel restart)
 - Adjustable column widths (drag the header edge, double-click to auto-fit)
 - First row is treated as the header
-- Each column header (the index too) shows a dimmed **dtype glyph** (`#` numeric,
-  `T` text, `B` bool, `D` datetime, `Δ` timedelta, `C` categorical); hover it for
-  the full dtype (e.g. `float64`, `datetime64[ns]`)
+- Each column header (the index too) shows a dimmed **dtype glyph** — codicon
+  icons for numeric/text/bool/datetime/categorical (the icon font VS Code ships)
+  and `Δ` for timedelta; hover it for the full dtype (e.g. `float64`,
+  `datetime64[ns]`)
 - The DataFrame index is shown as the leftmost column, labelled with the index
   name (a MultiIndex shows its level names joined with ", "; blank when unnamed)
 - Numeric columns are detected and right-aligned

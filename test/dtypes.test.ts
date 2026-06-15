@@ -2,22 +2,24 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { dtypeGlyph } from '../src/webview/dtypes';
 
-test('maps known kinds to distinct glyphs', () => {
-  const kinds = ['numeric', 'text', 'bool', 'datetime', 'timedelta', 'categorical'];
-  const glyphs = kinds.map(dtypeGlyph);
-  assert.equal(glyphs[0], '#');
-  // All distinct.
-  assert.equal(new Set(glyphs).size, kinds.length);
+test('maps the codicon-backed kinds to distinct icon names', () => {
+  assert.deepEqual(dtypeGlyph('numeric'), { codicon: 'symbol-numeric' });
+  assert.deepEqual(dtypeGlyph('text'), { codicon: 'symbol-string' });
+  assert.deepEqual(dtypeGlyph('bool'), { codicon: 'symbol-boolean' });
+  assert.deepEqual(dtypeGlyph('datetime'), { codicon: 'clockface' });
+  assert.deepEqual(dtypeGlyph('categorical'), { codicon: 'symbol-misc' });
+
+  const icons = ['numeric', 'text', 'bool', 'datetime', 'categorical'].map(
+    (k) => dtypeGlyph(k).codicon
+  );
+  assert.equal(new Set(icons).size, icons.length, 'icon names must be distinct');
 });
 
-test('falls back to the "other" glyph for unknown kinds', () => {
-  assert.equal(dtypeGlyph('something-else'), dtypeGlyph('other'));
+test('timedelta keeps the text glyph Δ', () => {
+  assert.deepEqual(dtypeGlyph('timedelta'), { text: 'Δ' });
 });
 
-test('glyphs are single BMP characters (no emoji-range codepoints)', () => {
-  for (const kind of ['numeric', 'text', 'bool', 'datetime', 'timedelta', 'categorical', 'other']) {
-    const g = dtypeGlyph(kind);
-    assert.equal([...g].length, 1, `${kind} glyph should be one character`);
-    assert.ok(g.codePointAt(0)! <= 0xffff, `${kind} glyph should be in the BMP`);
-  }
+test('unknown kinds fall back to the "other" text glyph', () => {
+  assert.deepEqual(dtypeGlyph('mystery'), dtypeGlyph('other'));
+  assert.equal(dtypeGlyph('other').text, '·');
 });

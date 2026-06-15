@@ -251,9 +251,12 @@ function initLayout(sample: string[][]): void {
     // including the index column.
     const type = columnTypes?.[c];
     if (type) {
+      const spec = dtypeGlyph(type.kind);
       const glyph = document.createElement('span');
-      glyph.className = 'dtype-glyph';
-      glyph.textContent = dtypeGlyph(type.kind);
+      glyph.className = spec.codicon ? `dtype-glyph codicon codicon-${spec.codicon}` : 'dtype-glyph';
+      if (spec.text) {
+        glyph.textContent = spec.text;
+      }
       glyph.title = type.dtype;
       cell.appendChild(glyph);
     }

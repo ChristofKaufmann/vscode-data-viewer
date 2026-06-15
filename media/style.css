@@ -249,6 +249,12 @@ body {
   font-weight: normal;
 }
 
+/* Codicon glyphs: size to the header text and nudge onto the baseline. */
+.dtype-glyph.codicon {
+  font-size: 14px;
+  vertical-align: -2px;
+}
+
 .resize-handle {
   position: absolute;
   top: 0;
