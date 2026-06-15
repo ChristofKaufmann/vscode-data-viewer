@@ -1,5 +1,11 @@
 import * as vscode from 'vscode';
-import { buildDumpCode, csvReadExpression, parsePayload, toTable } from './pandasTable';
+import {
+  buildDumpCode,
+  csvReadExpression,
+  parquetReadExpression,
+  parsePayload,
+  toTable,
+} from './pandasTable';
 import {
   canSelectInterpreter,
   PythonEnvironmentError,
@@ -15,16 +21,24 @@ class TableDocument implements vscode.CustomDocument {
 }
 
 export class TableEditorProvider implements vscode.CustomReadonlyEditorProvider<TableDocument> {
+  // CSV/TSV (opt-in) and Parquet (default) share one provider; the reader is
+  // chosen per file by extension.
   static readonly viewType = 'dataViewer.table';
+  static readonly parquetViewType = 'dataViewer.parquet';
 
   static register(context: vscode.ExtensionContext): vscode.Disposable {
-    return vscode.window.registerCustomEditorProvider(
-      TableEditorProvider.viewType,
-      new TableEditorProvider(context),
-      {
-        webviewOptions: { retainContextWhenHidden: true },
-        supportsMultipleEditorsPerDocument: true,
-      }
+    const provider = new TableEditorProvider(context);
+    const options = {
+      webviewOptions: { retainContextWhenHidden: true },
+      supportsMultipleEditorsPerDocument: true,
+    };
+    return vscode.Disposable.from(
+      vscode.window.registerCustomEditorProvider(TableEditorProvider.viewType, provider, options),
+      vscode.window.registerCustomEditorProvider(
+        TableEditorProvider.parquetViewType,
+        provider,
+        options
+      )
     );
   }
 
@@ -41,13 +55,16 @@ export class TableEditorProvider implements vscode.CustomReadonlyEditorProvider<
   }
 
   /**
-   * Reads the file via pandas.read_csv in the selected Python interpreter so
-   * it behaves exactly like a DataFrame viewed from a kernel. If the
-   * environment lacks pandas, offers to switch interpreter and retries.
+   * Reads the file (pd.read_csv or pd.read_parquet, by extension) in the
+   * selected Python interpreter so it behaves exactly like a DataFrame viewed
+   * from a kernel. If the environment is missing a required package, offers to
+   * switch interpreter and retries.
    */
   private async loadData(uri: vscode.Uri, options: LoadOptions): Promise<TableData> {
     const name = uri.path.split('/').pop() ?? '';
-    const code = buildDumpCode(csvReadExpression(uri.fsPath), options);
+    const isParquet = /\.(parquet|pq)$/i.test(uri.path);
+    const readExpr = isParquet ? parquetReadExpression(uri.fsPath) : csvReadExpression(uri.fsPath);
+    const code = buildDumpCode(readExpr, options);
     for (;;) {
       try {
         const stdout = await vscode.window.withProgress(
@@ -60,7 +77,7 @@ export class TableEditorProvider implements vscode.CustomReadonlyEditorProvider<
           throw err;
         }
         const choice = await vscode.window.showErrorMessage(
-          `${err.message} Select a Python interpreter with pandas installed to view this file.`,
+          `${err.message} You can pick a different interpreter via Select Interpreter.`,
           'Select Interpreter'
         );
         if (choice !== 'Select Interpreter') {

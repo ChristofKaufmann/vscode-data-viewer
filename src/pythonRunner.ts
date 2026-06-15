@@ -80,6 +80,13 @@ export async function runPythonScript(
             python
           )
         );
+      } else if (/Missing optional dependency ['"]?(pyarrow|fastparquet)/.test(stderr)) {
+        reject(
+          new PythonEnvironmentError(
+            `Reading Parquet needs the "pyarrow" (or "fastparquet") package, which "${python}" doesn't have. Install it, e.g. pip install pyarrow.`,
+            python
+          )
+        );
       } else {
         log.appendLine(`Python error (${python}):\n${stderr.trim()}`);
         const lines = stderr.trim().split('\n');

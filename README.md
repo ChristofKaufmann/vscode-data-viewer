@@ -10,6 +10,9 @@ in the spirit of Data Wrangler but starting small.
 - View **CSV/TSV** files in a table, loaded with `pandas.read_csv` (delimiter
   auto-detected: comma, semicolon, tab, pipe) so files behave exactly like
   DataFrames viewed from a kernel
+- View **Parquet** files (`*.parquet`/`*.pq`) via `pandas.read_parquet` — the
+  viewer opens them by default (needs `pyarrow` or `fastparquet` in the
+  interpreter)
 
 - **Heatmap mode** (toolbar checkbox, on by default) — cells are colored by value,
   computed in pandas/matplotlib. The toolbar **Heatmap** checkbox is a tri-state
@@ -58,9 +61,11 @@ Python environment with pandas installed.
 
 ## Usage
 
-- Right-click a `.csv`/`.tsv` file in the explorer → **Open in Data Viewer**
-- Or right-click an editor tab → **Reopen Editor With… → Data Viewer**
-- Or run **Data Viewer: Open in Data Viewer** from the command palette
+- **Parquet** files open in the viewer directly (it's their default editor)
+- For **CSV/TSV** (the text editor stays the default): right-click the file →
+  **Open in Data Viewer**, or right-click an editor tab → **Reopen Editor
+  With… → Data Viewer**, or run **Data Viewer: Open in Data Viewer** from the
+  command palette
 
 The default (text) editor is untouched; the viewer is opt-in per file.
 
@@ -130,5 +135,5 @@ identical behavior for files and variables.
 
 ## Ideas for later
 
-- Parquet / Excel / JSON Lines support
+- Excel / JSON Lines support
 - Column statistics

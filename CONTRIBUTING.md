@@ -195,15 +195,22 @@ Jupyter variable viewer (`jupyterVariableViewer.ts`):
   `text/plain` fallback). If "kernel returned no data" reappears, suspect this.
 - The kernel is re-acquired on every (re)load, so refresh survives a restart.
 
-CSV path (`pythonRunner.ts`):
+File path (`pythonRunner.ts`):
 
 - The interpreter is resolved from the Python extension's selected environment,
   falling back to `python3` on PATH. The chosen interpreter is logged to the
   "Data Viewer" output channel.
-- A missing pandas raises `PythonEnvironmentError`, which the editor surfaces with
-  a **"Select Interpreter"** retry loop. A CSV column can't carry an ordered
-  categorical dtype (read_csv yields strings) — exercise that feature via a
-  Jupyter variable (see `sample-data/jup-vars.py`).
+- A missing required package (pandas, or pyarrow/fastparquet for Parquet) raises
+  `PythonEnvironmentError`, which the editor surfaces with a **"Select
+  Interpreter"** retry loop. A CSV column can't carry an ordered categorical
+  dtype (read_csv yields strings) — exercise that feature via a Jupyter variable
+  (see `sample-data/jup-vars.py`).
+- **Adding a file format** is small: register the extension in a `customEditors`
+  selector in `package.json` (CSV/TSV is `priority: option`; Parquet is a second
+  contribution with `priority: default` since binary has no text view, both
+  pointing at the one provider), and pick the read expression by extension in
+  `loadData` (`csvReadExpression` vs `parquetReadExpression`). Everything
+  downstream is format-agnostic.
 
 ## Workflow
 

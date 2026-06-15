@@ -34,6 +34,19 @@
           }
         ],
         "priority": "option"
+      },
+      {
+        "viewType": "dataViewer.parquet",
+        "displayName": "Data Viewer",
+        "selector": [
+          {
+            "filenamePattern": "*.parquet"
+          },
+          {
+            "filenamePattern": "*.pq"
+          }
+        ],
+        "priority": "default"
       }
     ],
     "commands": [
