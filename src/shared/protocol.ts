@@ -4,6 +4,14 @@
 
 export const CHUNK_SIZE = 500;
 
+/** A column's pandas dtype string and a coarse kind used to pick a glyph. */
+export interface ColumnType {
+  /** Full dtype string for the tooltip, e.g. "float64", "datetime64[ns]". */
+  dtype: string;
+  /** Coarse category: numeric | bool | text | datetime | timedelta | categorical | other. */
+  kind: string;
+}
+
 /** Webview -> extension host */
 export interface HeatmapChoices {
   colormap?: string;
@@ -42,6 +50,8 @@ export type HostMessage =
       sample: string[][];
       /** Heatmap colors for the sample rows, or null when no heatmap applies. */
       sampleColors: (string | null)[][] | null;
+      /** Per-column dtype info aligned to `columns` (index first), or null. */
+      columnTypes: ColumnType[] | null;
     }
   | {
       type: 'rows';

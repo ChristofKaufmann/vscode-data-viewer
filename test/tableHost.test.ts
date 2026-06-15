@@ -22,6 +22,7 @@ function makeData(rows: number, tag = '', colors: TableData['colors'] = null): T
     columns: ['', 'a'],
     rows: Array.from({ length: rows }, (_, i) => [String(i), `v${tag}${i}`]),
     colors,
+    columnTypes: null,
   };
 }
 

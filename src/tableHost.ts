@@ -1,4 +1,4 @@
-import { CHUNK_SIZE, HostMessage, WebviewMessage } from './shared/protocol';
+import { CHUNK_SIZE, ColumnType, HostMessage, WebviewMessage } from './shared/protocol';
 
 export interface TableData {
   /** Label shown in the status bar (file or variable name). */
@@ -9,6 +9,8 @@ export interface TableData {
   rows: string[][];
   /** Per-cell heatmap colors aligned to `rows`, or null when none apply. */
   colors: (string | null)[][] | null;
+  /** Per-column dtype info aligned to `columns` (index first), or null. */
+  columnTypes: ColumnType[] | null;
 }
 
 /** Parameters that affect how the data is (re)loaded, set from the webview UI. */
@@ -60,6 +62,7 @@ export function createTableHost(deps: TableHostDeps): (message: WebviewMessage) 
         rowCount: data.rows.length,
         sample: data.rows.slice(0, 100),
         sampleColors: data.colors ? data.colors.slice(0, 100) : null,
+        columnTypes: data.columnTypes,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

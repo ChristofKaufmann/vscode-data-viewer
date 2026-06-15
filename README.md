@@ -32,6 +32,9 @@ in the spirit of Data Wrangler but starting small.
   surviving a kernel restart)
 - Adjustable column widths (drag the header edge, double-click to auto-fit)
 - First row is treated as the header
+- Each column header (the index too) shows a dimmed **dtype glyph** (`#` numeric,
+  `T` text, `B` bool, `D` datetime, `Δ` timedelta, `C` categorical); hover it for
+  the full dtype (e.g. `float64`, `datetime64[ns]`)
 - The DataFrame index is shown as the leftmost column, labelled with the index
   name (a MultiIndex shows its level names joined with ", "; blank when unnamed)
 - Numeric columns are detected and right-aligned
@@ -103,6 +106,7 @@ extension loaded, then open `sample-data/cities.csv` with it.
   cell classes), kept DOM-free so they can be unit-tested
 - `src/webview/contrast.ts` — pure helper picking black/white text for a
   heatmap background color
+- `src/webview/dtypes.ts` — maps a column's dtype kind to its header glyph
 - `src/shared/protocol.ts` — typed messages between host and webview
 
 Row storage stays in the extension host (instead of shipping everything into

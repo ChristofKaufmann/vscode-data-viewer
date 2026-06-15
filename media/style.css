@@ -242,6 +242,13 @@ body {
   border-bottom: 1px solid var(--vscode-editorGroup-border, rgba(128, 128, 128, 0.35));
 }
 
+.dtype-glyph {
+  margin-right: 5px;
+  color: var(--vscode-descriptionForeground);
+  opacity: 0.8;
+  font-weight: normal;
+}
+
 .resize-handle {
   position: absolute;
   top: 0;

@@ -4,6 +4,7 @@
  * side that turns the payload into table columns/rows. Used both by the
  * Jupyter kernel path (variables) and the subprocess path (CSV files).
  */
+import { ColumnType } from './shared/protocol';
 
 export const MAX_ROWS = 100_000;
 
@@ -23,6 +24,11 @@ export interface DumpPayload {
    * disabled, or matplotlib unavailable in the environment).
    */
   colors: (string | null)[][] | null;
+  /**
+   * Per-column dtype info aligned to the final columns (index first, then data
+   * columns), or null if it couldn't be computed.
+   */
+  columnTypes: ColumnType[] | null;
 }
 
 export interface HeatmapOptions {
@@ -176,8 +182,35 @@ export function buildDumpCode(objExpr: string, options: HeatmapOptions = {}): st
     '                colors = [list(_row) for _row in zip(*_cols)]',
     '    except Exception:',
     '        colors = None',
-    '    print(\'{"total": %d, "indexName": %s, "table": %s, "colors": %s}\'',
-    '          % (total, json.dumps(index_name), table, json.dumps(colors)))',
+    // Per-column dtype + coarse kind (for a type glyph + tooltip), aligned to
+    // the final columns: index first, then each data column.
+    '    column_types = None',
+    '    try:',
+    '        def _kind(_x):',
+    '            if pd.api.types.is_bool_dtype(_x):',
+    '                return "bool"',
+    '            if pd.api.types.is_datetime64_any_dtype(_x):',
+    '                return "datetime"',
+    '            if pd.api.types.is_timedelta64_dtype(_x):',
+    '                return "timedelta"',
+    '            if isinstance(getattr(_x, "dtype", _x), pd.CategoricalDtype):',
+    '                return "categorical"',
+    '            if pd.api.types.is_numeric_dtype(_x):',
+    '                return "numeric"',
+    '            if pd.api.types.is_string_dtype(_x):',
+    '                return "text"',
+    '            return "other"',
+    '        if isinstance(_raw.index, pd.MultiIndex):',
+    '            column_types = [{"dtype": "object", "kind": "other"}]',
+    '        else:',
+    '            column_types = [{"dtype": str(_raw.index.dtype), "kind": _kind(_raw.index)}]',
+    '        for _i in range(_raw.shape[1]):',
+    '            _col = _raw.iloc[:, _i]',
+    '            column_types.append({"dtype": str(_col.dtype), "kind": _kind(_col)})',
+    '    except Exception:',
+    '        column_types = None',
+    '    print(\'{"total": %d, "indexName": %s, "table": %s, "colors": %s, "columnTypes": %s}\'',
+    '          % (total, json.dumps(index_name), table, json.dumps(colors), json.dumps(column_types)))',
     '',
     '_VSCODE_dataviewer_dump()',
     'del _VSCODE_dataviewer_dump',
@@ -221,6 +254,8 @@ export interface TableContent {
    * no heatmap applies.
    */
   colors: (string | null)[][] | null;
+  /** Per-column dtype info aligned to `columns` (index first), or null. */
+  columnTypes: ColumnType[] | null;
   /** Status-bar notice when the data was truncated to MAX_ROWS. */
   note?: string;
 }
@@ -242,5 +277,6 @@ export function toTable(payload: DumpPayload): TableContent {
     payload.total > table.data.length
       ? `showing first ${table.data.length.toLocaleString()} of ${payload.total.toLocaleString()} rows`
       : undefined;
-  return { columns, rows, colors, note };
+  // columnTypes already includes the index at [0], so it lines up with columns.
+  return { columns, rows, colors, columnTypes: payload.columnTypes, note };
 }

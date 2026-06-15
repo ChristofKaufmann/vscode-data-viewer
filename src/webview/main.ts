@@ -1,7 +1,8 @@
-import { CHUNK_SIZE, HostMessage, WebviewMessage } from '../shared/protocol';
+import { CHUNK_SIZE, ColumnType, HostMessage, WebviewMessage } from '../shared/protocol';
 import { autoWidth, cellClass, clampDragWidth, isNumericColumn, maxChars } from './columns';
 import { idealTextColor } from './contrast';
 import { steppedGradient } from './colormaps';
+import { dtypeGlyph } from './dtypes';
 
 declare function acquireVsCodeApi(): { postMessage(message: WebviewMessage): void };
 
@@ -34,6 +35,7 @@ let rowCount = 0;
 let gridTemplate = '';
 let numericCols: boolean[] = [];
 let colWidths: number[] = [];
+let columnTypes: ColumnType[] | null = null;
 
 // Widths the user set explicitly (drag or auto-fit), keyed by column header so
 // they survive a refresh even if columns are added/removed/reordered. Columns
@@ -64,6 +66,7 @@ window.addEventListener('message', (event: MessageEvent<HostMessage>) => {
       pendingChunks.clear();
       columns = message.columns;
       rowCount = message.rowCount;
+      columnTypes = message.columnTypes;
       initLayout(message.sample);
       // The sample only seeds the cache when it covers all of chunk 0;
       // a partial chunk would otherwise mask the missing rows forever.
@@ -234,15 +237,27 @@ function initLayout(sample: string[][]): void {
   for (let c = 0; c < columns.length; c++) {
     const values = sample.map((row) => row[c] ?? '');
     numericCols.push(isNumericColumn(values));
+    // The dtype glyph on a header needs ~2 extra characters of room.
+    const glyphPad = columnTypes?.[c] ? 2 : 0;
     const manual = manualWidths.get(columns[c]);
-    colWidths.push(manual ?? autoWidth(maxChars(columns[c], values)));
+    colWidths.push(manual ?? autoWidth(maxChars(columns[c], values) + glyphPad));
   }
 
   headerEl.replaceChildren();
   for (let c = 0; c < columns.length; c++) {
     const cell = document.createElement('div');
     cell.className = classFor('cell head', c);
-    cell.textContent = columns[c];
+    // A dimmed type glyph (with the full dtype as tooltip) before the name,
+    // including the index column.
+    const type = columnTypes?.[c];
+    if (type) {
+      const glyph = document.createElement('span');
+      glyph.className = 'dtype-glyph';
+      glyph.textContent = dtypeGlyph(type.kind);
+      glyph.title = type.dtype;
+      cell.appendChild(glyph);
+    }
+    cell.appendChild(document.createTextNode(columns[c]));
     cell.title = columns[c];
     const handle = document.createElement('div');
     handle.className = 'resize-handle';

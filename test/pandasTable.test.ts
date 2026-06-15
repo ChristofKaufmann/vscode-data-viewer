@@ -14,6 +14,7 @@ function payload(over: Partial<DumpPayload> = {}): DumpPayload {
     indexName: '',
     table: { columns: ['a', 'b'], index: [0, 1], data: [[1, 'x'], [2, 'y']] },
     colors: null,
+    columnTypes: null,
     ...over,
   };
 }
@@ -39,6 +40,15 @@ test('toTable prepends a null index color, aligning colors with rows', () => {
 
 test('toTable passes through null colors (no heatmap)', () => {
   assert.equal(toTable(payload({ colors: null })).colors, null);
+});
+
+test('toTable passes column types through (already index-aligned)', () => {
+  const columnTypes = [
+    { dtype: 'int64', kind: 'numeric' },
+    { dtype: 'float64', kind: 'numeric' },
+    { dtype: 'object', kind: 'text' },
+  ];
+  assert.deepEqual(toTable(payload({ columnTypes })).columnTypes, columnTypes);
 });
 
 test('toTable uses the index name as the first header when named', () => {
@@ -147,6 +157,9 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /_c\.cat\.codes/);
   // Centering is skipped for datetimes (arbitrary epoch) and categoricals.
   assert.match(code, /_center and _grp\[_i\] not in \("datetime", "categorical"\)/);
+  // Per-column dtype + kind are computed for the type glyphs.
+  assert.match(code, /"columnTypes": %s/);
+  assert.match(code, /def _kind\(_x\):/);
   // Regression guards: no old single-name default, no dropped showIndex field.
   assert.doesNotMatch(code, /else "index"/);
   assert.doesNotMatch(code, /showIndex/);
