@@ -77,7 +77,7 @@ body {
   background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.2));
 }
 
-/* Highlight the funnel while a filter is active (even if the bar is hidden). */
+/* Highlight the funnel while a filter is applied (bar open with an expression). */
 #filter-toggle.active {
   color: var(--vscode-inputOption-activeForeground, var(--vscode-foreground));
   background: var(--vscode-inputOption-activeBackground, rgba(0, 127, 212, 0.25));

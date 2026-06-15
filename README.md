@@ -47,7 +47,10 @@ in the spirit of Data Wrangler but starting small.
   `DataFrame.query` expression with bare column names, e.g.
   `(founded < 0 | founded > 1000) & last_census.notna()` — supports `&`/`|`,
   comparisons, `.isna()`/`.notna()`, ordered-categorical comparisons, and `index`;
-  a bad expression shows the error inline and leaves the data unfiltered
+  a bad expression shows the error inline and leaves the data unfiltered.
+  Clicking the funnel again hides the bar and disables the filter temporarily
+  (the data goes back to unfiltered) while keeping the expression; clicking once
+  more re-applies it
 - Adjustable column widths (drag the header edge, double-click to auto-fit)
 - First row is treated as the header
 - Each column header (the index too) shows a dimmed **dtype glyph** — codicon

@@ -232,7 +232,9 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Filter bar: the funnel toggles it; the query is applied (reload) on Enter.
+// Filter bar: the funnel both reveals the bar and enables the filter. Hiding
+// the bar disables the filter (data shown unfiltered) but keeps the expression
+// in the input, so clicking the funnel again re-applies it.
 filterToggle.addEventListener('click', () => {
   const open = !document.body.classList.contains('filtering');
   document.body.classList.toggle('filtering', open);
@@ -240,10 +242,16 @@ filterToggle.addEventListener('click', () => {
   if (open) {
     filterInput.focus();
   }
+  syncFilter();
 });
 
-function applyFilter(): void {
-  const next = filterInput.value.trim();
+/**
+ * Reconciles the applied filter with the UI: the input expression while the bar
+ * is open, or none while it's hidden. Reloads only when it actually changed.
+ */
+function syncFilter(): void {
+  const open = document.body.classList.contains('filtering');
+  const next = open ? filterInput.value.trim() : '';
   if (next === currentFilter) {
     return;
   }
@@ -254,12 +262,12 @@ function applyFilter(): void {
 
 filterInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
-    applyFilter();
+    syncFilter();
   }
 });
 filterClear.addEventListener('click', () => {
   filterInput.value = '';
-  applyFilter();
+  syncFilter();
   filterInput.focus();
 });
 
