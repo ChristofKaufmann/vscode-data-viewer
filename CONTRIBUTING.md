@@ -208,9 +208,9 @@ CSP-safe and beats the stylesheet's default fill — an inline `style=` attribut
 in the SVG string would be blocked by `style-src`). No ticks or min/median/max.
 **Unordered discrete** columns — text/object, unordered categorical, bool —
 get a horizontal stacked bar (`_segments` in `buildDumpCode`): `value_counts`
-capped to the top 8 plus an "(other)" bucket, with a **qualitative** palette
-(`tab10`, plus gray for "(other)") so no order is implied, and the full distinct
-count in `unique` (shown as a caption). `stackedBarSvg` lays the segments out
+capped to the top 9 plus an "(other)" bucket, with a **qualitative** palette
+(`tab10` minus C7, the gray that would clash with the gray "(other)" bucket) so
+no order is implied, and the full distinct count in `unique` (shown as a caption). `stackedBarSvg` lays the segments out
 proportionally; fills are applied per-segment via `rect.style.fill`. Because the
 segments have varying widths, hover hit-testing uses `segmentAt` (cumulative
 count) rather than the uniform `binIndexAt`, and the bubble anchors above the

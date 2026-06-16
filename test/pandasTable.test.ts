@@ -215,6 +215,10 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /def _segments\(_c\):/);
   assert.match(code, /_vc = _c\.value_counts\(dropna=True\)/);
   assert.match(code, /colormaps\["tab10"\]/);
+  // Top 9, and the palette skips tab10's C7 (gray) so it can't clash with the
+  // gray "(other)" bucket.
+  assert.match(code, /_TOP = 9/);
+  assert.match(code, /_idx = \[0, 1, 2, 3, 4, 5, 6, 8, 9\]/);
   assert.match(code, /_labels\.append\("\(other\)"\)/);
   assert.match(code, /"unique": int\(_vc\.size\)/);
   assert.match(code, /_entry\["segments"\] = _s/);
