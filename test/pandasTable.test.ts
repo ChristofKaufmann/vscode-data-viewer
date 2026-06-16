@@ -187,10 +187,14 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /stats = \[\{"missing": _missing\(obj\.index\)\}\]/);
   // Stats are counted before the head() truncation so they stay exact.
   assert.ok(code.indexOf('_missing(obj.index)') < code.indexOf(`head = obj.head(`));
-  // Numeric (non-bool) columns also get an equal-width histogram via numpy,
-  // over non-null values, attached only when computable.
-  assert.match(code, new RegExp(`_np\\.histogram\\(_v, bins=${HIST_BINS}\\)`));
+  // Numeric (non-bool) columns also get a histogram via numpy over non-null
+  // values, binned on a "nice" rounded grid (step from range/HIST_BINS), and
+  // attached only when computable.
   assert.match(code, /_v\[_np\.isfinite\(_v\)\]/);
+  assert.match(code, new RegExp(`_nice\\(\\(_hi - _lo\\) / ${HIST_BINS}, True\\)`));
+  assert.match(code, /_np\.floor\(_lo \/ _step\) \* _step/);
+  assert.match(code, /_np\.histogram\(_v, bins=_edges\)/);
+  assert.match(code, /"edges": \[round\(float\(_e\), _dec\)/);
   assert.match(code, /_entry\["histogram"\] = _h/);
   // Sorting: empty by default; a stable multi-key sort when keys are given.
   assert.match(code, /_sort = \[\]/);

@@ -46,8 +46,8 @@ test('histogramSvg floors every bin to the minimum when all counts are zero', ()
 
 test('formatNumber uses a decimal point and no grouping, regardless of locale', () => {
   assert.equal(formatNumber(-2.4), '-2.4');
-  assert.equal(formatNumber(1234.5678), '1234.568'); // 3 fraction digits, no thousands separator
-  assert.equal(formatNumber(1000), '1000');
+  assert.equal(formatNumber(0.05), '0.05'); // faithful — edges are pre-rounded in Python
+  assert.equal(formatNumber(1000), '1000'); // no thousands separator
   assert.equal(formatNumber(0), '0');
 });
 
@@ -73,8 +73,8 @@ test('binIndexAt maps a 0..1 fraction to a bin and clamps the edges', () => {
   assert.equal(binIndexAt(1.5, 4), 3);
 });
 
-test('histogramBin returns equal-width edges and the count for a bin', () => {
-  const hist = { counts: [2, 7, 1, 0], min: 0, max: 8 };
+test('histogramBin reads the edges and count for a bin off the nice grid', () => {
+  const hist = { counts: [2, 7, 1, 0], edges: [0, 2, 4, 6, 8] };
   assert.deepEqual(histogramBin(hist, 0), { lo: 0, hi: 2, count: 2 });
   assert.deepEqual(histogramBin(hist, 1), { lo: 2, hi: 4, count: 7 });
   assert.deepEqual(histogramBin(hist, 3), { lo: 6, hi: 8, count: 0 });

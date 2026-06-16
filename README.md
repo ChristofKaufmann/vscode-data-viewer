@@ -57,10 +57,11 @@ in the spirit of Data Wrangler but starting small.
   - **Missing values** (**Σ** button): the missing-value count per column with
     its share of the rows, e.g. `3 (30%)`
   - **Distributions** (**graph** button): a small histogram per numeric column
-    (`np.histogram`, 16 bins over non-null values), drawn as an inline SVG that
-    scales to the column width; empty bins keep a minimum bar so the full spread
-    stays visible. Hovering a bar pops up an immediate bubble with that bin's
-    range and count
+    (`np.histogram` over non-null values, binned on a "nice" rounded grid of
+    ≈16 bins so the edges are readable round numbers), drawn as an inline SVG
+    that scales to the column width; empty bins keep a minimum bar so the full
+    spread stays visible. Hovering a bar pops up an immediate bubble with that
+    bin's range and count
 - Adjustable column widths (drag the header edge, double-click to auto-fit)
 - First row is treated as the header
 - Each column header (the index too) shows a dimmed **dtype glyph** — codicon

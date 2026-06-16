@@ -24,11 +24,11 @@ export interface ColumnStat {
   /** Count of missing (NaN/NaT/None) values across all rows, before truncation. */
   missing: number;
   /**
-   * Equal-width histogram for numeric columns (over non-null values), or absent
-   * for non-numeric columns. Bin edges are derivable from `min`/`max` and
-   * `counts.length`, so only the counts and range cross the wire.
+   * Histogram for numeric columns (over non-null values), or absent for
+   * non-numeric columns. Bins use a "nice" rounded grid, so `edges` (length
+   * `counts.length + 1`) are readable round numbers shown verbatim.
    */
-  histogram?: { counts: number[]; min: number; max: number };
+  histogram?: { counts: number[]; edges: number[] };
 }
 
 /** Webview -> extension host */

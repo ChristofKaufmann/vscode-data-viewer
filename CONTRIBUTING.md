@@ -175,11 +175,17 @@ class, and CSS hides the inactive sub-row's cells (`display:none`) so the other
 **reflows up** to the top of the grid — no rebuild on toggle. Each sub-row's
 leftmost (sticky) cell labels it instead of showing the index's own value.
 
-The histogram is computed with `np.histogram(col.dropna(), bins=HIST_BINS)` (one
-call → counts + edges; only `counts`/`min`/`max` cross the wire) and drawn by the
-pure `histogramSvg()` in `webview/stats.ts`: a `viewBox="0 0 bins 100"` SVG with
-`preserveAspectRatio="none"`, so it stretches to the cell and **never rebuilds on
-resize**. Empty bins still get `HIST_MIN_BAR` so the spread stays visible.
+The histogram bins on a **"nice" rounded grid** (Heckbert): a step of the form
+{1,2,5}×10ᵏ is picked near `range / HIST_BINS`, the low/high edges are snapped
+down/up to multiples of it, and `np.histogram` runs on those edges — so every
+edge is a readable round number on a shared grid (≈`HIST_BINS` bins, not exactly).
+Edges are rounded to the step's precision in Python to shed float noise, and the
+full `edges` array is shipped (the webview prints them verbatim via
+`formatNumber`, which forces a locale-independent decimal point). The bars are
+drawn by the pure `histogramSvg()` in `webview/stats.ts`: a `viewBox="0 0 bins
+100"` SVG with `preserveAspectRatio="none"`, so it stretches to the cell and
+**never rebuilds on resize**. Empty bins still get `HIST_MIN_BAR` so the spread
+stays visible.
 
 Per-bin details use a **custom hover bubble** (`#hist-bubble`), not the slow
 native `title`. It's `position:fixed` on `<body>` (so the scroller/cell

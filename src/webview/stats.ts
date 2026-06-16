@@ -59,11 +59,11 @@ export function barTopFraction(counts: number[], i: number): number {
   return (HIST_VIEW_H - barHeight(counts[i] ?? 0, max)) / HIST_VIEW_H;
 }
 
-/** A numeric column's histogram (equal-width bins), as shipped in `ColumnStat`. */
+/** A numeric column's histogram on a "nice" rounded grid, as shipped in `ColumnStat`. */
 export interface Histogram {
   counts: number[];
-  min: number;
-  max: number;
+  /** Bin edges on the nice grid; length is `counts.length + 1`. */
+  edges: number[];
 }
 
 /**
@@ -75,20 +75,20 @@ export function binIndexAt(fraction: number, bins: number): number {
 }
 
 /**
- * Formats a number with a decimal point regardless of the UI locale, up to 3
- * fraction digits and without grouping — so histogram bin edges read the same
- * way as the table cells, which come straight from pandas (always a point).
+ * Formats a number with a decimal point regardless of the UI locale and without
+ * grouping — so histogram bin edges read the same way as the table cells, which
+ * come straight from pandas (always a point). Edges are already rounded to a
+ * clean precision in Python, so we just print them faithfully.
  */
 export function formatNumber(value: number): string {
-  return value.toLocaleString('en-US', { maximumFractionDigits: 3, useGrouping: false });
+  return value.toLocaleString('en-US', { maximumFractionDigits: 20, useGrouping: false });
 }
 
-/** Edge values [lo, hi) and count for bin `i` of an equal-width histogram. */
+/** Edge values [lo, hi) and count for bin `i`, read off the nice-grid edges. */
 export function histogramBin(hist: Histogram, i: number): { lo: number; hi: number; count: number } {
-  const width = (hist.max - hist.min) / hist.counts.length;
   return {
-    lo: hist.min + i * width,
-    hi: hist.min + (i + 1) * width,
+    lo: hist.edges[i],
+    hi: hist.edges[i + 1],
     count: hist.counts[i] ?? 0,
   };
 }
