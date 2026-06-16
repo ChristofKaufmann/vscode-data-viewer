@@ -155,20 +155,27 @@ body.filtering #scroller {
   display: none;
 }
 
+/* The Colorize toggle and its settings chevron form one split button: adjacent,
+   with the rounded corners only on the outer edges (like the "Run" button). */
 #heatmap-menu {
   position: relative;
   display: inline-flex;
+  align-items: center;
+}
+
+#heatmap-menu .tbtn {
+  border-radius: 4px 0 0 4px;
 }
 
 #heatmap-settings {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 22px;
+  width: 22px;
+  height: 24px;
   padding: 0;
   border: none;
-  border-radius: 4px;
+  border-radius: 0 4px 4px 0;
   background: transparent;
   color: var(--vscode-foreground);
   font-size: 13px;
