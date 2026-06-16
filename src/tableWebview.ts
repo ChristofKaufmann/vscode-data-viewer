@@ -83,6 +83,10 @@ function getHtml(
       `</optgroup>`
   ).join('');
 
+  // The Colorize toggle is "active" when any column type is colorized.
+  const anyColorize =
+    settings.colorizeNumeric || settings.colorizeDatetime || settings.colorizeCategorical;
+
   return /* html */ `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,9 +104,7 @@ function getHtml(
     <button id="filter-toggle" class="tbtn" title="Filter rows" aria-expanded="false"><span class="codicon codicon-filter"></span><span>Filter</span></button>
     <button id="stats-toggle" class="tbtn" title="Show missing-value counts" aria-pressed="false"><span class="icon">Σ</span><span>Missing</span></button>
     <button id="hist-toggle" class="tbtn" title="Show value distributions" aria-pressed="false"><span class="codicon codicon-graph"></span><span>Graphs</span></button>
-    <label id="heatmap-toggle" title="Color cells by value">
-      <input type="checkbox" id="heatmap"${settings.colorizeNumeric && settings.colorizeDatetime && settings.colorizeCategorical ? ' checked' : ''}> Colorize
-    </label>
+    <button id="heatmap-toggle" class="tbtn${anyColorize ? ' active' : ''}" title="Color cells by value" aria-pressed="${anyColorize}"><span class="codicon codicon-symbol-color"></span><span>Colorize</span></button>
     <div id="heatmap-menu">
       <button id="heatmap-settings" title="Heatmap settings" aria-expanded="false" aria-haspopup="true"><span class="codicon codicon-chevron-down"></span></button>
       <div id="heatmap-panel" role="dialog" aria-label="Heatmap settings" hidden>

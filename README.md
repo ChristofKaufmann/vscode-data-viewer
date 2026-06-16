@@ -20,9 +20,10 @@ in the spirit of Data Wrangler but starting small.
   `data.csv.gz`, `sales.tsv.bz2`, `t.parquet.zip`, etc. (`.gz`/`.bz2`/`.zip`/
   `.xz`/`.zst`/`.tar` and `.tar.*`) open like their uncompressed forms
 
-- **Heatmap mode** (the **Colorize** toolbar checkbox, on by default) — cells are
-  colored by value, computed in pandas/matplotlib. The **Colorize** checkbox is a
-  tri-state select-all over three type toggles in the popover: **Colorize numeric**,
+- **Heatmap mode** (the **Colorize** toolbar button, on by default) — cells are
+  colored by value, computed in pandas/matplotlib. The **Colorize** button is a
+  select-all toggle (active when any type is colored) over three type toggles in
+  the popover: **Colorize numeric**,
   **Colorize datetime** (by timestamp), and **Colorize categorical** (ordered
   categoricals only, by rank). Numeric, datetime and timedelta columns each form a
   separate value-range group so they never distort each other; ordered categoricals

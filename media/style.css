@@ -62,10 +62,11 @@ body {
   cursor: default;
 }
 
-/* Highlight a toggle button while its feature is active (filter / stats rows). */
+/* Highlight a toggle button while its feature is active (filter / stats / colorize). */
 #filter-toggle.active,
 #stats-toggle.active,
-#hist-toggle.active {
+#hist-toggle.active,
+#heatmap-toggle.active {
   color: var(--vscode-inputOption-activeForeground, var(--vscode-foreground));
   background: var(--vscode-inputOption-activeBackground, rgba(0, 127, 212, 0.25));
 }
@@ -152,21 +153,6 @@ body.filtering #scroller {
 
 #filter-error:empty {
   display: none;
-}
-
-#heatmap-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--vscode-foreground);
-  cursor: pointer;
-  user-select: none;
-}
-
-#heatmap-toggle input {
-  margin: 0;
-  cursor: pointer;
 }
 
 #heatmap-menu {

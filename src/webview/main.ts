@@ -38,7 +38,7 @@ const headerEl = document.getElementById('header')!;
 const bodyEl = document.getElementById('body')!;
 const statusEl = document.getElementById('status')!;
 const refreshBtn = document.getElementById('refresh') as HTMLButtonElement;
-const heatmapCheckbox = document.getElementById('heatmap') as HTMLInputElement;
+const heatmapToggle = document.getElementById('heatmap-toggle') as HTMLButtonElement;
 const settingsBtn = document.getElementById('heatmap-settings') as HTMLButtonElement;
 const heatmapPanel = document.getElementById('heatmap-panel')!;
 const colormapSelect = document.getElementById('colormap') as HTMLSelectElement;
@@ -182,12 +182,11 @@ function persistSettings(): void {
   });
 }
 
-/** The master "Heatmap" checkbox mirrors the type toggles (select-all). */
-function syncMasterCheckbox(): void {
-  const all = currentColorizeNumeric && currentColorizeDatetime && currentColorizeCategorical;
-  const none = !currentColorizeNumeric && !currentColorizeDatetime && !currentColorizeCategorical;
-  heatmapCheckbox.checked = all;
-  heatmapCheckbox.indeterminate = !all && !none;
+/** The master "Colorize" button is active when any column type is colorized. */
+function syncMasterButton(): void {
+  const any = currentColorizeNumeric || currentColorizeDatetime || currentColorizeCategorical;
+  heatmapToggle.classList.toggle('active', any);
+  heatmapToggle.setAttribute('aria-pressed', String(any));
 }
 
 /** A type toggle changed: update state, the master, persist, and reload. */
@@ -195,7 +194,7 @@ function onColorizeChanged(): void {
   currentColorizeNumeric = colorizeNumericCheckbox.checked;
   currentColorizeDatetime = colorizeDatetimeCheckbox.checked;
   currentColorizeCategorical = colorizeCategoricalCheckbox.checked;
-  syncMasterCheckbox();
+  syncMasterButton();
   persistSettings();
   requestReload();
 }
@@ -204,7 +203,7 @@ colorizeDatetimeCheckbox.addEventListener('change', onColorizeChanged);
 colorizeCategoricalCheckbox.addEventListener('change', onColorizeChanged);
 
 // Master toggle: turn everything on if anything is off, else turn all off.
-heatmapCheckbox.addEventListener('change', () => {
+heatmapToggle.addEventListener('click', () => {
   const next = !(currentColorizeNumeric || currentColorizeDatetime || currentColorizeCategorical);
   currentColorizeNumeric = next;
   currentColorizeDatetime = next;
@@ -212,11 +211,11 @@ heatmapCheckbox.addEventListener('change', () => {
   colorizeNumericCheckbox.checked = next;
   colorizeDatetimeCheckbox.checked = next;
   colorizeCategoricalCheckbox.checked = next;
-  syncMasterCheckbox();
+  syncMasterButton();
   persistSettings();
   requestReload();
 });
-syncMasterCheckbox();
+syncMasterButton();
 
 /** Paints the preview swatch for the currently selected colormap. */
 function updateColormapPreview(): void {
