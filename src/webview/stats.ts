@@ -50,6 +50,40 @@ export function histogramSvg(counts: number[]): string {
 }
 
 /**
+ * A thin tick strip (its own full-width SVG below the bars) marking the
+ * min/median/max positions. Kept out of the bar chart so the ticks sit just
+ * below the graph at a fixed pixel height instead of scaling with the bars.
+ * x maps each value's 0..1 fraction across a 0..100 viewBox (full width, like
+ * the bars), so the ticks line up with the chart.
+ *
+ * min/max are straight ticks (their labels hug the strip's edges). The median's
+ * label is centered (x=50), so its tick routes down half-way, across to the
+ * label, then down the rest — an elbow connecting the exact position to the
+ * centered label, which is most visible when the median is off-center (skew).
+ */
+export function tickStripSvg(minF: number, medianF: number, maxF: number): string {
+  const x = (f: number) => Math.round(Math.max(0, Math.min(1, f)) * 1000) / 10;
+  const tick = (f: number) =>
+    `<line x1="${x(f)}" y1="0" x2="${x(f)}" y2="10" vector-effect="non-scaling-stroke"/>`;
+  const mx = x(medianF);
+  const median = `<path d="M${mx} 0 L${mx} 5 L50 5 L50 10" fill="none" vector-effect="non-scaling-stroke"/>`;
+  return `<svg class="hist-ticks" viewBox="0 0 100 10" preserveAspectRatio="none">${tick(minF)}${median}${tick(maxF)}</svg>`;
+}
+
+/**
+ * Position of `value` as a 0..1 fraction of the chart width (which spans the
+ * nice-grid edges, not the data extent), clamped into range.
+ */
+export function markerFraction(edges: number[], value: number): number {
+  const lo = edges[0];
+  const hi = edges[edges.length - 1];
+  if (!(hi > lo)) {
+    return 0;
+  }
+  return Math.max(0, Math.min(1, (value - lo) / (hi - lo)));
+}
+
+/**
  * Top edge of bin `i`'s bar as a fraction of the chart height (0 = chart top,
  * 1 = chart bottom). Lets the hover bubble sit above the bar itself rather than
  * above the whole chart; uses the same scaling as the drawn bars.
@@ -64,6 +98,10 @@ export interface Histogram {
   counts: number[];
   /** Bin edges on the nice grid; length is `counts.length + 1`. */
   edges: number[];
+  /** Actual data min/median/max (rounded for labels), within the grid range. */
+  min: number;
+  median: number;
+  max: number;
 }
 
 /**

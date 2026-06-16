@@ -195,6 +195,11 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /_np\.floor\(_lo \/ _step\) \* _step/);
   assert.match(code, /_np\.histogram\(_v, bins=_edges\)/);
   assert.match(code, /"edges": \[round\(float\(_e\), _dec\)/);
+  // Actual data min/median/max (rounded to 3 sig figs) accompany the bins for
+  // the axis labels/ticks.
+  assert.match(code, /def _sig\(_x\):/);
+  assert.match(code, /_md = float\(_np\.median\(_v\)\)/);
+  assert.match(code, /"min": _sig\(_lo\), "median": _sig\(_md\), "max": _sig\(_hi\)/);
   assert.match(code, /_entry\["histogram"\] = _h/);
   // Sorting: empty by default; a stable multi-key sort when keys are given.
   assert.match(code, /_sort = \[\]/);

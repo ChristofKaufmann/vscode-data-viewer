@@ -548,26 +548,91 @@ body:not(.stats-hist) #stats-row .stat-hist {
   background: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-editor-background));
 }
 
-/* Histogram sub-row: taller cells holding a full-bleed SVG bar chart. */
+/* Histogram sub-row: a bar chart over a tick strip and min/median/max labels. */
 .cell.stat-hist {
-  height: 34px;
-  padding: 3px 4px;
+  height: 68px;
+  padding: 3px 4px 2px;
+  display: flex;
+  flex-direction: column;
 }
 
 .cell.stat-hist.indexcol {
-  display: flex;
+  flex-direction: row;
   align-items: center;
   padding: 0 8px;
 }
 
 .cell.stat-hist .hist {
   display: block;
+  flex: 1 1 auto;
   width: 100%;
-  height: 100%;
+  min-height: 0;
 }
 
 .cell.stat-hist .hist rect {
   fill: var(--vscode-charts-blue, var(--vscode-foreground));
+}
+
+/* min/median/max tick strip: a short, fixed-height row just below the bars.
+   Tall enough to show the median's elbow connector to its centered label. */
+.cell.stat-hist .hist-ticks {
+  flex: none;
+  display: block;
+  width: 100%;
+  height: 10px;
+}
+
+.cell.stat-hist .hist-ticks line,
+.cell.stat-hist .hist-ticks path {
+  stroke: var(--vscode-foreground);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+
+/* The labels under the chart: a value over a "(min)/(median)/(max)" caption,
+   aligned left / center / right. Proportional UI font (not the editor mono). */
+.cell.stat-hist .hist-axis {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  font-family: var(--vscode-font-family, sans-serif);
+  font-size: 9px;
+  line-height: 1.25;
+  color: var(--vscode-descriptionForeground);
+}
+
+.cell.stat-hist .hist-axis .ax {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cell.stat-hist .hist-axis .ax:first-child {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.cell.stat-hist .hist-axis .ax:nth-child(2) {
+  align-items: center;
+  text-align: center;
+}
+
+.cell.stat-hist .hist-axis .ax:last-child {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.cell.stat-hist .hist-axis .ax-val {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell.stat-hist .hist-axis .ax-cap {
+  opacity: 0.7;
 }
 
 /*

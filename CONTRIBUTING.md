@@ -187,6 +187,18 @@ drawn by the pure `histogramSvg()` in `webview/stats.ts`: a `viewBox="0 0 bins
 **never rebuilds on resize**. Empty bins still get `HIST_MIN_BAR` so the spread
 stays visible.
 
+The actual data **min/median/max** (rounded to 3 sig figs in Python, separate
+from the grid edges) ride along too. Ticks are drawn in their own thin
+**`tickStripSvg`** below the bars (a fixed-height strip, so the tick length is in
+real pixels and doesn't scale with the bars) at `markerFraction(edges, value)` of
+the width — since the axis spans the grid, not the data — with
+`vector-effect="non-scaling-stroke"` to stay 1px. Their **labels** are plain HTML
+in a `.hist-axis` row (min left, median center, max right), *not* SVG text, which
+the non-uniform `preserveAspectRatio` would distort. min/max are straight ticks
+(labels hug the edges); the median's label is centered, so its tick is an **elbow
+path** (down half → across to x=50 → down) linking the exact position to the
+centered label — most visible on skewed data.
+
 Per-bin details use a **custom hover bubble** (`#hist-bubble`), not the slow
 native `title`. It's `position:fixed` on `<body>` (so the scroller/cell
 `overflow` can't clip it) with `pointer-events:none`, and a delegated `mousemove`

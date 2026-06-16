@@ -7,6 +7,8 @@ import {
   formatPercent,
   histogramBin,
   histogramSvg,
+  markerFraction,
+  tickStripSvg,
 } from '../src/webview/stats';
 
 test('formatPercent rounds to a whole number at 10% and above', () => {
@@ -62,6 +64,27 @@ test('barTopFraction tracks the bar height (0 at top for the tallest bin)', () =
   assert.ok(mid > 0 && mid < 0.92);
 });
 
+test('tickStripSvg draws straight min/max ticks and an elbow for the median', () => {
+  const svg = tickStripSvg(0.1, 0.3, 0.9);
+  // min and max are straight vertical ticks at their mapped x.
+  const xs = [...svg.matchAll(/<line x1="([\d.]+)"/g)].map((m) => Number(m[1]));
+  assert.deepEqual(xs, [10, 90]);
+  // The median routes down half, across to the centered label (x=50), then down.
+  assert.match(svg, /<path d="M30 0 L30 5 L50 5 L50 10" fill="none"/);
+  assert.match(svg, /viewBox="0 0 100 10"/);
+  assert.match(svg, /vector-effect="non-scaling-stroke"/);
+});
+
+test('markerFraction maps a value onto the grid span and clamps', () => {
+  const edges = [0, 2, 4];
+  assert.equal(markerFraction(edges, 1), 0.25);
+  assert.equal(markerFraction(edges, 2), 0.5);
+  assert.equal(markerFraction(edges, 0), 0);
+  assert.equal(markerFraction(edges, 4), 1);
+  assert.equal(markerFraction(edges, 9), 1); // out of range clamps
+  assert.equal(markerFraction([5, 5], 5), 0); // degenerate (zero-width) grid
+});
+
 test('binIndexAt maps a 0..1 fraction to a bin and clamps the edges', () => {
   assert.equal(binIndexAt(0, 4), 0);
   assert.equal(binIndexAt(0.49, 4), 1);
@@ -74,7 +97,7 @@ test('binIndexAt maps a 0..1 fraction to a bin and clamps the edges', () => {
 });
 
 test('histogramBin reads the edges and count for a bin off the nice grid', () => {
-  const hist = { counts: [2, 7, 1, 0], edges: [0, 2, 4, 6, 8] };
+  const hist = { counts: [2, 7, 1, 0], edges: [0, 2, 4, 6, 8], min: 0.4, median: 3.1, max: 7.8 };
   assert.deepEqual(histogramBin(hist, 0), { lo: 0, hi: 2, count: 2 });
   assert.deepEqual(histogramBin(hist, 1), { lo: 2, hi: 4, count: 7 });
   assert.deepEqual(histogramBin(hist, 3), { lo: 6, hi: 8, count: 0 });

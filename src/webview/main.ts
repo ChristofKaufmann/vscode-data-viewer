@@ -19,6 +19,8 @@ import {
   formatPercent,
   histogramBin,
   histogramSvg,
+  markerFraction,
+  tickStripSvg,
 } from './stats';
 
 declare function acquireVsCodeApi(): { postMessage(message: WebviewMessage): void };
@@ -372,7 +374,32 @@ function buildStatsRow(): void {
       cell.className = 'cell stat stat-hist';
       const hist = columnStats[c]?.histogram;
       if (hist && hist.counts.length) {
-        cell.innerHTML = histogramSvg(hist.counts);
+        const f = (v: number) => markerFraction(hist.edges, v);
+        cell.innerHTML =
+          histogramSvg(hist.counts) + tickStripSvg(f(hist.min), f(hist.median), f(hist.max));
+        // min / median / max labels below the chart (HTML, so they aren't
+        // stretched by the SVG's non-uniform scaling): each a value over a
+        // "(min)" / "(median)" / "(max)" caption, aligned left/center/right.
+        const axis = document.createElement('div');
+        axis.className = 'hist-axis';
+        const labels: [number, string][] = [
+          [hist.min, 'min'],
+          [hist.median, 'median'],
+          [hist.max, 'max'],
+        ];
+        for (const [v, name] of labels) {
+          const item = document.createElement('div');
+          item.className = 'ax';
+          const val = document.createElement('span');
+          val.className = 'ax-val';
+          val.textContent = formatNumber(v);
+          const cap = document.createElement('span');
+          cap.className = 'ax-cap';
+          cap.textContent = `(${name})`;
+          item.append(val, cap);
+          axis.appendChild(item);
+        }
+        cell.appendChild(axis);
         // Per-bin details come from a custom hover bubble (see below), not the
         // slow native title; data-col lets the delegated handler find the stats.
         cell.dataset.col = String(c);

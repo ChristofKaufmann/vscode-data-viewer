@@ -26,9 +26,11 @@ export interface ColumnStat {
   /**
    * Histogram for numeric columns (over non-null values), or absent for
    * non-numeric columns. Bins use a "nice" rounded grid, so `edges` (length
-   * `counts.length + 1`) are readable round numbers shown verbatim.
+   * `counts.length + 1`) are readable round numbers shown verbatim. `min`,
+   * `median` and `max` are the actual data values (rounded for labels), which
+   * lie within the grid range.
    */
-  histogram?: { counts: number[]; edges: number[] };
+  histogram?: { counts: number[]; edges: number[]; min: number; median: number; max: number };
 }
 
 /** Webview -> extension host */
