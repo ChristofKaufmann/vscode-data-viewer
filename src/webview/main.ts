@@ -394,7 +394,7 @@ function buildStatsRow(): void {
         }
         const cap = document.createElement('div');
         cap.className = 'stacked-cap';
-        cap.textContent = `${segments.unique.toLocaleString()} unique`;
+        cap.textContent = `${segments.allUnique ? 'all ' : ''}${segments.unique.toLocaleString()} unique`;
         cell.appendChild(cap);
         cell.dataset.col = String(c);
       } else if (bars && bars.counts.length) {

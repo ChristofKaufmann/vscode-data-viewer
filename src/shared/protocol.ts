@@ -48,6 +48,8 @@ export interface ColumnStat {
     counts: number[];
     colors: (string | null)[] | null;
     unique: number;
+    /** True when every value occurs exactly once (the column has no repeats). */
+    allUnique: boolean;
   };
 }
 

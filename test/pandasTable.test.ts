@@ -223,6 +223,7 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /_idx = \[0, 1, 2, 3, 4, 5, 6, 8, 9\]/);
   assert.match(code, /_labels\.append\("\(other\)"\)/);
   assert.match(code, /"unique": int\(_vc\.size\)/);
+  assert.match(code, /"allUnique": bool\(_cv\[0\] == 1\)/);
   assert.match(code, /_entry\["segments"\] = _s/);
   // Sorting: empty by default; a stable multi-key sort when keys are given.
   assert.match(code, /_sort = \[\]/);

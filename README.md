@@ -69,7 +69,8 @@ in the spirit of Data Wrangler but starting small.
     - *Unordered* discrete columns (text/string, unordered categorical, bool)
       get a horizontal stacked bar — the most frequent values plus an "(other)"
       bucket, with a qualitative palette (no order implied) and a caption with
-      the distinct-value count. Values are kept a whole count-level at a time (so
+      the distinct-value count (e.g. "all 10 unique" when the column has no
+      repeats). Values are kept a whole count-level at a time (so
       equal-frequency ties stay together) until a level would overflow the
       available colors, at which point it and everything rarer become "(other)".
 - Adjustable column widths (drag the header edge, double-click to auto-fit)

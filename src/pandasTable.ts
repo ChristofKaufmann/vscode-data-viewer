@@ -277,7 +277,8 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '                        _colors.append("#888888")',
     '                except Exception:',
     '                    _colors = None',
-    '                return {"labels": _labels, "counts": _counts, "colors": _colors, "unique": int(_vc.size)}',
+    // allUnique: every value occurs once (counts are sorted, so max == 1).
+    '                return {"labels": _labels, "counts": _counts, "colors": _colors, "unique": int(_vc.size), "allUnique": bool(_cv[0] == 1)}',
     '            except Exception:',
     '                return None',
     '        stats = [{"missing": _missing(obj.index)}]',
