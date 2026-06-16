@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   barTopFraction,
   binIndexAt,
+  formatNumber,
   formatPercent,
   histogramBin,
   histogramSvg,
@@ -41,6 +42,13 @@ test('histogramSvg scales to the tallest bin and floors empty bins', () => {
 test('histogramSvg floors every bin to the minimum when all counts are zero', () => {
   const heights = [...histogramSvg([0, 0]).matchAll(/height="([\d.]+)"/g)].map((m) => Number(m[1]));
   assert.deepEqual(heights, [8, 8]);
+});
+
+test('formatNumber uses a decimal point and no grouping, regardless of locale', () => {
+  assert.equal(formatNumber(-2.4), '-2.4');
+  assert.equal(formatNumber(1234.5678), '1234.568'); // 3 fraction digits, no thousands separator
+  assert.equal(formatNumber(1000), '1000');
+  assert.equal(formatNumber(0), '0');
 });
 
 test('barTopFraction tracks the bar height (0 at top for the tallest bin)', () => {

@@ -12,7 +12,14 @@ import { steppedGradient } from './colormaps';
 import { dtypeGlyph } from './dtypes';
 import { cycleSort, sortState } from './sorting';
 import { filterPlaceholder } from './filterHint';
-import { barTopFraction, binIndexAt, formatPercent, histogramBin, histogramSvg } from './stats';
+import {
+  barTopFraction,
+  binIndexAt,
+  formatNumber,
+  formatPercent,
+  histogramBin,
+  histogramSvg,
+} from './stats';
 
 declare function acquireVsCodeApi(): { postMessage(message: WebviewMessage): void };
 
@@ -411,9 +418,8 @@ function showHistBubble(e: MouseEvent): void {
   const { lo, hi, count } = histogramBin(hist, bin);
   const total = hist.counts.reduce((a, b) => a + b, 0);
   const pct = total > 0 ? ` (${formatPercent((count / total) * 100)})` : '';
-  const num = (v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 3 });
   histBubble.innerHTML =
-    `<div class="hb-range">${num(lo)} – ${num(hi)}</div>` +
+    `<div class="hb-range">${formatNumber(lo)} – ${formatNumber(hi)}</div>` +
     `<div class="hb-count">${count.toLocaleString()}${pct}</div>`;
 
   // Center over the bin and sit above the hovered bar's top, flipping below the

@@ -74,6 +74,15 @@ export function binIndexAt(fraction: number, bins: number): number {
   return Math.max(0, Math.min(bins - 1, Math.floor(fraction * bins)));
 }
 
+/**
+ * Formats a number with a decimal point regardless of the UI locale, up to 3
+ * fraction digits and without grouping — so histogram bin edges read the same
+ * way as the table cells, which come straight from pandas (always a point).
+ */
+export function formatNumber(value: number): string {
+  return value.toLocaleString('en-US', { maximumFractionDigits: 3, useGrouping: false });
+}
+
 /** Edge values [lo, hi) and count for bin `i` of an equal-width histogram. */
 export function histogramBin(hist: Histogram, i: number): { lo: number; hi: number; count: number } {
   const width = (hist.max - hist.min) / hist.counts.length;
