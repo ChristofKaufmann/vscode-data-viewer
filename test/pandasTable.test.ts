@@ -241,6 +241,8 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /"%s < '1 days 01:23:45'" % _qcol/);
   assert.match(code, /"%s != %s" % \(_qcol\(_cols\[_vi\]\), _lit\(_fv\)\)/);
   assert.match(code, /_kw\.iskeyword/);
+  // The .notna() and value clauses are ordered by column position.
+  assert.match(code, /"\(%s & %s\.notna\(\)\)" % \(_vc, _qcol\(_cols\[_ni\]\)\)/);
   assert.match(code, /"\(%s\.notna\(\) & %s\)" % \(_qcol\(_cols\[_ni\]\), _vc\)/);
   // Index clause: `index` for a single index; a MultiIndex level uses its name,
   // or `ilevel_0` when unnamed; datetime/timedelta use a quoted str().

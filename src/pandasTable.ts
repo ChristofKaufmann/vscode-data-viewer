@@ -352,7 +352,14 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '                _fv = obj.iloc[0, _vi] if len(obj) else ""',
     '                _vc = "%s != %s" % (_qcol(_cols[_vi]), _lit(_fv))',
     '            _ni = next((_i for _i in range(len(_cols)) if _i != _vi), None)',
-    '            _inner = "(%s.notna() & %s)" % (_qcol(_cols[_ni]), _vc) if _ni is not None else _vc',
+    // Order the .notna() and value clauses by column position so the hint lists
+    // columns in their actual order, not value-column-last.
+    '            if _ni is None:',
+    '                _inner = _vc',
+    '            elif _vi < _ni:',
+    '                _inner = "(%s & %s.notna())" % (_vc, _qcol(_cols[_ni]))',
+    '            else:',
+    '                _inner = "(%s.notna() & %s)" % (_qcol(_cols[_ni]), _vc)',
     '            _ii = obj.index',
     '            _pos = 1 if len(_ii) > 1 else (0 if len(_ii) else None)',
     '            _idx = None',
