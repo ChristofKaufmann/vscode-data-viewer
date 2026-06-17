@@ -1,60 +1,32 @@
-# %%
+# %% imports
 import numpy as np
 import matplotlib.pyplot as plt
 
-mask = np.array([
-    [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
-    [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
-    [0,0,1,0,1,0,1,0,1,0,1,0,1,0,0],
-    [0,0,0,1,0,1,0,1,0,1,0,1,0,0,0],
-    [0,0,0,0,1,0,1,0,1,0,1,0,0,0,0],
-    [0,0,0,0,0,1,0,1,0,1,0,0,0,0,0],
-    [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
-    # [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-    # [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-    # [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-    # [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-    # [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
-    [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
-    [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
-    [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
-], dtype=float)
-mask[mask == 0] = np.nan
+# %% logo
 
-rng = np.random.default_rng(42)
-r = rng.random(mask.shape) * 5 + np.arange(1, 1 + mask.shape[0]).reshape(-1, 1)
+rng = np.random.default_rng(0)
 
-X, Y = np.meshgrid(np.arange(mask.shape[1]), np.arange(mask.shape[0]))
-X = X * 0.65
-# Y = Y * 0.60
-plt.scatter(X.ravel(), -Y.ravel(), c=(r * mask).ravel(), s=500, marker='h')
-plt.axis('equal')
-# plt.xlim(-1, 7)
-# plt.ylim(-5, 1)
+# circular markers
+angles = np.arange(0, 360, 60)
+x = np.cos(angles * np.pi / 180)
+y = np.sin(angles * np.pi / 180)
 
-# %%
+# center marker
+x = np.append(x, 0)
+y = np.append(y, 0)
 
-mask = np.array([
-    [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
-    [0,0,0,0,0,1,0,1,0,1,0,0,0,0,0],
-    [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
-], dtype=float)
-mask[mask == 0] = np.nan
+# colors (center yellow)
+c = rng.random(x.shape)
+c[-1] = 1
 
-rng = np.random.default_rng(42)
-r = rng.random(mask.shape) * 5 + np.arange(1, 1 + mask.shape[0]).reshape(-1, 1)
-
-X, Y = np.meshgrid(np.arange(mask.shape[1]), np.arange(mask.shape[0]))
-X = X * 0.58
-# Y = Y * 0.60
+# plot and export
 fig, ax = plt.subplots(figsize=(2, 2))
-plt.scatter(X.ravel(), -Y.ravel(), c=(r * mask).ravel(), s=1000, marker='H')
+plt.scatter(x, y, s=1150, c=c, marker='h')
 plt.axis('equal')
-# plt.axis('off')
-# plt.
-plt.xlim(2, 6)
-# plt.xlim(3, 11)
-# plt.ylim(-7, 1)
+plt.axis('off')
+plt.xlim(-1.4, 1.4)
+# fig.savefig('logo.svg', transparent=True, bbox_inches='tight')  # SVG not allowed in Marketplace
+fig.savefig('logo.png', transparent=True, bbox_inches='tight')
 
-# %%
+# POST-PROCESSING:
+# convert logo.png -trim logo.png
