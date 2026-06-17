@@ -22,8 +22,8 @@ export interface TableData {
   stats: ColumnStat[] | null;
   /** Total rows in the full (filtered) data, before truncation. */
   total: number;
-  /** A `query` literal for a real index value, for the filter hint, or null. */
-  indexClause: string | null;
+  /** Example query expression for the filter-hint placeholder, or null. */
+  filterHint: string | null;
   /** pandas error from a failed filter query (data shown unfiltered), or null. */
   filterError: string | null;
 }
@@ -84,7 +84,7 @@ export function createTableHost(deps: TableHostDeps): (message: WebviewMessage) 
         sampleColors: data.colors ? data.colors.slice(0, 100) : null,
         columnTypes: data.columnTypes,
         stats: data.stats,
-        indexClause: data.indexClause,
+        filterHint: data.filterHint,
         filterError: data.filterError,
       });
     } catch (err) {

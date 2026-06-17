@@ -39,11 +39,11 @@ export interface DumpPayload {
    */
   stats: ColumnStat[] | null;
   /**
-   * A `DataFrame.query` literal for a real index value (a Python `repr`, or a
-   * quoted `str()` for datetime/timedelta), used in the filter hint. null when
-   * there are no rows.
+   * An example `DataFrame.query` expression for the filter input placeholder,
+   * built from the real dtypes (so a MultiIndex references a level by name).
+   * null when there are no data columns. The webview wraps it as the hint text.
    */
-  indexClause: string | null;
+  filterHint: string | null;
   /** pandas error message from a failed filter query, or null. */
   filterError: string | null;
 }
@@ -305,14 +305,18 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '            stats.append(_entry)',
     '    except Exception:',
     '        stats = None',
-    // A full `query` clause for a real index value (the 2nd row\'s), for the
-    // filter hint. The left-hand side depends on the index kind: a single index
-    // is `index`; a MultiIndex level must be referenced by its name (`ilevel_N`
-    // only works for *unnamed* levels), backticked when not a clean identifier.
-    // The value is a Python `repr` literal (numbers bare, strings/tuples quoted;
-    // numpy scalars unwrapped via .item()), but a quoted str() for
-    // datetime/timedelta whose repr is a non-query-friendly Timestamp(...).
-    '    index_clause = None',
+    // An example `DataFrame.query` expression for the filter input placeholder,
+    // built here (not in JS) so it can use the real dtypes and a level name for a
+    // MultiIndex. Shape: `<index clause> | (<other>.notna() & <value clause>)`.
+    // - value clause picks a column by dtype: numeric `> 0`, else datetime
+    //   `> '1986-06-30'`, else timedelta `< '...'`, else the last column
+    //   `!= <its first value>`.
+    // - index clause: `index` for a single index; for a MultiIndex the level's
+    //   name (`ilevel_N` only works for *unnamed* levels), backticked when not a
+    //   clean identifier; `!=` is dtype-safe (text/categorical reject `<`/`>`).
+    // Values are repr() literals (numpy scalars unwrapped via .item()), or a
+    // quoted str() for datetime/timedelta (their repr is a Timestamp(...) call).
+    '    filter_hint = None',
     '    try:',
     '        import keyword as _kw',
     '        def _lit(_v):',
@@ -324,22 +328,45 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '        def _qcol(_name):',
     '            _s = str(_name)',
     '            return _s if _s.isidentifier() and not _kw.iskeyword(_s) else "`" + _s + "`"',
-    '        def _rhs(_v, _is_time):',
-    '            return repr(str(_v)) if _is_time else _lit(_v)',
-    '        _ii = obj.index',
-    '        _pos = 1 if len(_ii) > 1 else (0 if len(_ii) else None)',
-    '        if _pos is not None:',
-    '            if isinstance(_ii, pd.MultiIndex):',
-    '                _name0 = _ii.names[0]',
-    '                _lhs = _qcol(_name0) if _name0 is not None else "ilevel_0"',
-    '                _lv = _ii.get_level_values(0)',
-    '                _it = pd.api.types.is_datetime64_any_dtype(_lv) or pd.api.types.is_timedelta64_dtype(_lv)',
-    '                index_clause = "%s != %s" % (_lhs, _rhs(_lv[_pos], _it))',
-    '            else:',
-    '                _it = pd.api.types.is_datetime64_any_dtype(_ii) or pd.api.types.is_timedelta64_dtype(_ii)',
-    '                index_clause = "index != %s" % _rhs(_ii[_pos], _it)',
+    '        def _is_time(_x):',
+    '            return pd.api.types.is_datetime64_any_dtype(_x) or pd.api.types.is_timedelta64_dtype(_x)',
+    '        def _rhs(_v, _t):',
+    '            return repr(str(_v)) if _t else _lit(_v)',
+    '        _cols = list(obj.columns)',
+    '        if _cols:',
+    '            _dt = obj.dtypes',
+    '            _vi = None',
+    '            for _i in range(len(_cols)):',
+    '                if pd.api.types.is_numeric_dtype(_dt.iloc[_i]) and not pd.api.types.is_bool_dtype(_dt.iloc[_i]):',
+    '                    _vi, _vc = _i, "%s > 0" % _qcol(_cols[_i]); break',
+    '            if _vi is None:',
+    '                for _i in range(len(_cols)):',
+    '                    if pd.api.types.is_datetime64_any_dtype(_dt.iloc[_i]):',
+    '                        _vi, _vc = _i, "%s > \'1986-06-30\'" % _qcol(_cols[_i]); break',
+    '            if _vi is None:',
+    '                for _i in range(len(_cols)):',
+    '                    if pd.api.types.is_timedelta64_dtype(_dt.iloc[_i]):',
+    '                        _vi, _vc = _i, "%s < \'1 days 01:23:45\'" % _qcol(_cols[_i]); break',
+    '            if _vi is None:',
+    '                _vi = len(_cols) - 1',
+    '                _fv = obj.iloc[0, _vi] if len(obj) else ""',
+    '                _vc = "%s != %s" % (_qcol(_cols[_vi]), _lit(_fv))',
+    '            _ni = next((_i for _i in range(len(_cols)) if _i != _vi), None)',
+    '            _inner = "(%s.notna() & %s)" % (_qcol(_cols[_ni]), _vc) if _ni is not None else _vc',
+    '            _ii = obj.index',
+    '            _pos = 1 if len(_ii) > 1 else (0 if len(_ii) else None)',
+    '            _idx = None',
+    '            if _pos is not None:',
+    '                if isinstance(_ii, pd.MultiIndex):',
+    '                    _name0 = _ii.names[0]',
+    '                    _lhs = _qcol(_name0) if _name0 is not None else "ilevel_0"',
+    '                    _lv = _ii.get_level_values(0)',
+    '                    _idx = "%s != %s" % (_lhs, _rhs(_lv[_pos], _is_time(_lv)))',
+    '                else:',
+    '                    _idx = "index != %s" % _rhs(_ii[_pos], _is_time(_ii))',
+    '            filter_hint = " | ".join([_idx, _inner]) if _idx else _inner',
     '    except Exception:',
-    '        index_clause = None',
+    '        filter_hint = None',
     `    head = obj.head(${MAX_ROWS}).copy()`,
     // index.names works for both a regular Index (one element) and a
     // MultiIndex (whose .name is always None); join the level names so a
@@ -467,8 +494,8 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '            column_types.append({"dtype": str(_col.dtype), "kind": _kind(_col)})',
     '    except Exception:',
     '        column_types = None',
-    '    print(\'{"total": %d, "indexName": %s, "table": %s, "colors": %s, "columnTypes": %s, "stats": %s, "indexClause": %s, "filterError": %s}\'',
-    '          % (total, json.dumps(index_name), table, json.dumps(colors), json.dumps(column_types), json.dumps(stats), json.dumps(index_clause), json.dumps(_filter_error)))',
+    '    print(\'{"total": %d, "indexName": %s, "table": %s, "colors": %s, "columnTypes": %s, "stats": %s, "filterHint": %s, "filterError": %s}\'',
+    '          % (total, json.dumps(index_name), table, json.dumps(colors), json.dumps(column_types), json.dumps(stats), json.dumps(filter_hint), json.dumps(_filter_error)))',
     '',
     '_VSCODE_dataviewer_dump()',
     'del _VSCODE_dataviewer_dump',
@@ -533,8 +560,8 @@ export interface TableContent {
   stats: ColumnStat[] | null;
   /** Total rows in the full (filtered) data, before truncation to MAX_ROWS. */
   total: number;
-  /** A `query` literal for a real index value, for the filter hint, or null. */
-  indexClause: string | null;
+  /** Example query expression for the filter-hint placeholder, or null. */
+  filterHint: string | null;
   /** pandas error message from a failed filter query, or null. */
   filterError: string | null;
   /** Status-bar notice when the data was truncated to MAX_ROWS. */
@@ -566,7 +593,7 @@ export function toTable(payload: DumpPayload): TableContent {
     columnTypes: payload.columnTypes,
     stats: payload.stats,
     total: payload.total,
-    indexClause: payload.indexClause,
+    filterHint: payload.filterHint,
     filterError: payload.filterError,
     note,
   };

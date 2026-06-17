@@ -20,7 +20,7 @@ function payload(over: Partial<DumpPayload> = {}): DumpPayload {
     colors: null,
     columnTypes: null,
     stats: null,
-    indexClause: null,
+    filterHint: null,
     filterError: null,
     ...over,
   };
@@ -54,9 +54,9 @@ test('toTable passes the filter error through', () => {
   assert.equal(toTable(payload({ filterError: "name 'nope' is not defined" })).filterError, "name 'nope' is not defined");
 });
 
-test('toTable passes the index example literal through', () => {
-  assert.equal(toTable(payload({ indexClause: "'Paris'" })).indexClause, "'Paris'");
-  assert.equal(toTable(payload()).indexClause, null);
+test('toTable passes the filter-hint expression through', () => {
+  assert.equal(toTable(payload({ filterHint: "'Paris'" })).filterHint, "'Paris'");
+  assert.equal(toTable(payload()).filterHint, null);
 });
 
 test('toTable passes column stats and the full total through (index-aligned)', () => {
@@ -231,16 +231,25 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /"unique": int\(_vc\.size\)/);
   assert.match(code, /"allUnique": bool\(_cv\[0\] == 1\)/);
   assert.match(code, /_entry\["segments"\] = _s/);
-  // The filter-hint index example: a repr() literal (handles MultiIndex tuples
-  // and numpy scalars via .item()), but a quoted str() for datetime/timedelta.
-  assert.match(code, /"indexClause": %s/);
-  // A single index references `index`; a MultiIndex level uses its (backticked-
-  // if-needed) name, or `ilevel_0` when unnamed; datetime/timedelta use str().
-  assert.match(code, /index_clause = "index != %s" % _rhs/);
+  // The whole filter-hint example is built in Python (real dtypes). It ships as
+  // `filterHint` and the webview just wraps it.
+  assert.match(code, /"filterHint": %s/);
+  // Value clause by dtype priority: numeric > 0, datetime, timedelta, else
+  // last column != its first value; backticking via str.isidentifier/keyword.
+  assert.match(code, /"%s > 0" % _qcol/);
+  assert.match(code, /"%s > '1986-06-30'" % _qcol/);
+  assert.match(code, /"%s < '1 days 01:23:45'" % _qcol/);
+  assert.match(code, /"%s != %s" % \(_qcol\(_cols\[_vi\]\), _lit\(_fv\)\)/);
+  assert.match(code, /_kw\.iskeyword/);
+  assert.match(code, /"\(%s\.notna\(\) & %s\)" % \(_qcol\(_cols\[_ni\]\), _vc\)/);
+  // Index clause: `index` for a single index; a MultiIndex level uses its name,
+  // or `ilevel_0` when unnamed; datetime/timedelta use a quoted str().
+  assert.match(code, /_idx = "index != %s" % _rhs/);
   assert.match(code, /isinstance\(_ii, pd\.MultiIndex\)/);
   assert.match(code, /"ilevel_0"/);
-  assert.match(code, /_kw\.iskeyword/);
-  assert.match(code, /return repr\(str\(_v\)\) if _is_time else _lit\(_v\)/);
+  assert.match(code, /return repr\(str\(_v\)\) if _t else _lit\(_v\)/);
+  // The index clause is ORed in front of the column clause.
+  assert.match(code, /filter_hint = " \| "\.join\(\[_idx, _inner\]\) if _idx else _inner/);
   // Sorting: empty by default; a stable multi-key sort when keys are given.
   assert.match(code, /_sort = \[\]/);
   const sorted = buildDumpCode('df', { sort: [{ column: 2, descending: true }, { column: 0, descending: false }] });

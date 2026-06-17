@@ -98,8 +98,8 @@ export type HostMessage =
       columnTypes: ColumnType[] | null;
       /** Per-column summary stats aligned to `columns` (index first), or null. */
       stats: ColumnStat[] | null;
-      /** A `query` literal for a real index value, for the filter hint, or null. */
-      indexClause: string | null;
+      /** Example query expression for the filter-hint placeholder, or null. */
+      filterHint: string | null;
       /** pandas error from a failed filter query (data shown unfiltered), or null. */
       filterError: string | null;
     }

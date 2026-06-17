@@ -25,7 +25,7 @@ function makeData(rows: number, tag = '', colors: TableData['colors'] = null): T
     columnTypes: null,
     stats: Array.from({ length: 2 }, () => ({ missing: 0 })),
     total: rows,
-    indexClause: '1',
+    filterHint: '1',
     filterError: null,
   };
 }

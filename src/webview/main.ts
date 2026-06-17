@@ -11,7 +11,6 @@ import { idealTextColor } from './contrast';
 import { steppedGradient } from './colormaps';
 import { dtypeGlyph } from './dtypes';
 import { cycleSort, sortState } from './sorting';
-import { filterPlaceholder } from './filterHint';
 import {
   barTopFraction,
   binIndexAt,
@@ -106,12 +105,10 @@ window.addEventListener('message', (event: MessageEvent<HostMessage>) => {
       rowTotal = message.total;
       columnTypes = message.columnTypes;
       columnStats = message.stats;
-      filterInput.placeholder = filterPlaceholder(
-        columns,
-        columnTypes,
-        message.sample,
-        message.indexClause
-      );
+      // The example query is built in pandas (real dtypes); we just wrap it.
+      filterInput.placeholder = message.filterHint
+        ? `Filter rows, e.g.  ${message.filterHint}`
+        : 'Filter rows with a pandas query expression';
       initLayout(message.sample);
       buildStatsRow();
       // The sample only seeds the cache when it covers all of chunk 0;
