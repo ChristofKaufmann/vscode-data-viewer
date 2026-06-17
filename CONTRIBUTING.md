@@ -195,7 +195,12 @@ stays visible. Each bar is **tinted by its bin center** on the Colorize colormap
 (`_bin_colors`, the center normalized over the data extent `[lo, hi]` — the same
 mapping as the numeric cell coloring, so the histogram reads as a left-to-right
 gradient and matches the cell colors); the per-bin `colors` array is applied in
-`main.ts` via `rect.style.fill`, exactly like the categorical bars below.
+`main.ts` via `rect.style.fill`, exactly like the categorical bars below. The
+coloring **follows the Colorize type toggle**: a numeric histogram is tinted only
+when `colorizeNumeric` is on, datetime/timedelta only when `colorizeDatetime` is
+on — so turning Colorize off (which clears all the type flags) leaves the bars in
+the default single fill, like the cells. `colors` is then `null` and the post-pass
+that computes it (`_hgroup`/`_hranges`, see below) skips that histogram.
 
 **Datetime/timedelta** share that histogram, with two twists. (1) Edges are
 **calendar-/duration-aware**: `_date_edges` picks the finest `pd.date_range`
@@ -224,7 +229,9 @@ centered label — most visible on skewed data.
 **Ordered-categorical** columns get the other distribution shape (`_bars` in
 `buildDumpCode`): `value_counts` reindexed to `dtype.categories` (category/rank
 order, including zero-count categories), with each bar tinted by Colorize
-colormap sampled at its rank. They reuse `histogramSvg` for the bars; the
+colormap sampled at its rank — again only when the categorical toggle
+(`colorizeCategorical`) is on, else `colors` is `null` and the bars stay a single
+fill. They reuse `histogramSvg` for the bars; the
 per-bar fill is applied in `main.ts` via `rect.style.fill` (DOM CSSOM, which is
 CSP-safe and beats the stylesheet's default fill — an inline `style=` attribute
 in the SVG string would be blocked by `style-src`). No ticks or min/median/max.
@@ -239,7 +246,10 @@ are never split arbitrarily. Colors are a **qualitative** palette (`tab10` minus
 C7, the gray that would clash with the gray "(other)" bucket); `_nominal_info`
 also returns the `vmap` (value→color) used for cell backgrounds; `unique` carries
 the full distinct count (shown as a caption). `stackedBarSvg` lays the segments out
-proportionally; fills are applied per-segment via `rect.style.fill`. Because the
+proportionally; fills are applied per-segment via `rect.style.fill`. Unlike the
+histograms and ordinal bars, the stacked bar is **always colored** (its toggle
+state is irrelevant) — a single-fill stacked bar is just one indistinguishable
+block, so the palette is essential rather than decorative. Because the
 segments have varying widths, hover hit-testing uses `segmentAt` (cumulative
 count) rather than the uniform `binIndexAt`, and the bubble anchors above the
 strip rather than a bar top.

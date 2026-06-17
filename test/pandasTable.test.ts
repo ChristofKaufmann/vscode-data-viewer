@@ -221,6 +221,13 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /_h\["colors"\] = _bin_colors\(_h\["edges"\], _lo, _hi\)/);
   assert.match(code, /if _columnwise:/);
   assert.match(code, /if _center and _g != "datetime":/);
+  // A histogram is colored only when its type's Colorize toggle is on, so turning
+  // Colorize off leaves the bars uncolored (like the cells).
+  assert.match(code, /_g == "num" and not _do_num.*_g in \("datetime", "timedelta"\) and not _do_dt/);
+  assert.match(buildDumpCode('x', { colorizeNumeric: false }), /_do_num = False/);
+  // Ordered-categorical bars are likewise tinted only when categorical Colorize is
+  // on (the stacked-bar segments stay colored — a single-color bar is unreadable).
+  assert.match(code, /_colors = None\n.*if _do_cat:\n.*try:/);
   // center/columnwise are injected into the stats block too (not just the colors
   // block), so the histogram range tracks the cell-coloring range — both appear.
   const centered = buildDumpCode('x', { center: true, columnwise: true });

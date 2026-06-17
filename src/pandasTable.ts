@@ -226,6 +226,9 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     `        _HB = ${HIST_BINS}`,
     `        _center = ${center ? 'True' : 'False'}`,
     `        _columnwise = ${columnwise ? 'True' : 'False'}`,
+    `        _do_num = ${colorizeNumeric ? 'True' : 'False'}`,
+    `        _do_dt = ${colorizeDatetime ? 'True' : 'False'}`,
+    `        _do_cat = ${colorizeCategorical ? 'True' : 'False'}`,
     '        def _missing(_x):',
     '            try:',
     '                return int(pd.isna(_x).sum())',
@@ -360,7 +363,11 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '                _counts = [int(_vc.get(_k, 0)) for _k in _cats]',
     '                _labels = [str(_k) for _k in _cats]',
     '                _colors = None',
-    '                try:',
+    // Tint the bars only when the categorical Colorize toggle is on, so turning
+    // Colorize off leaves them in the default single fill (like the cells and the
+    // numeric/datetime histograms).
+    '                if _do_cat:',
+    '                  try:',
     '                    import matplotlib as _mpl',
     `                    _cm = _mpl.colormaps[${JSON.stringify(cmap)}]`,
     '                    _k = len(_cats)',
@@ -369,7 +376,7 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '                        _t = _j / (_k - 1) if _k > 1 else 0.0',
     '                        _rgb = [int(round(_x * 255)) for _x in _cm(_t)[:3]]',
     '                        _colors.append("#%02x%02x%02x" % (_rgb[0], _rgb[1], _rgb[2]))',
-    '                except Exception:',
+    '                  except Exception:',
     '                    _colors = None',
     '                return {"labels": _labels, "counts": _counts, "colors": _colors}',
     '            except Exception:',
@@ -410,6 +417,12 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '            else:',
     '                _hranges[_g] = (_lo, _hi)',
     '        for _h, _g in _hgroup:',
+    // Color a histogram only when its type\'s Colorize toggle is on (numeric ->
+    // _do_num, datetime/timedelta -> _do_dt), so turning Colorize off leaves the
+    // bars in the default single fill, like the cells.
+    '            if (_g == "num" and not _do_num) or (_g in ("datetime", "timedelta") and not _do_dt):',
+    '                _h["colors"] = None',
+    '                continue',
     '            if _columnwise:',
     '                _lo, _hi = _h["min"], _h["max"]',
     '            else:',
