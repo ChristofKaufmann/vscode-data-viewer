@@ -42,6 +42,8 @@ export interface LoadOptions {
   colorizeDatetime?: boolean;
   /** Color ordered categorical columns by rank. */
   colorizeCategorical?: boolean;
+  /** Color unordered/text/bool cells by value (matching the stacked bar). */
+  colorizeText?: boolean;
   /** Multi-column sort keys (primary first); empty/undefined = unsorted. */
   sort?: SortKey[];
   /** pandas query filter expression; empty/undefined = unfiltered. */
@@ -107,6 +109,7 @@ export function createTableHost(deps: TableHostDeps): (message: WebviewMessage) 
           colorizeNumeric: message.colorizeNumeric,
           colorizeDatetime: message.colorizeDatetime,
           colorizeCategorical: message.colorizeCategorical,
+          colorizeText: message.colorizeText,
           sort: message.sort,
           filter: message.filter,
         });

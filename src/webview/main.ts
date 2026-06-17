@@ -47,6 +47,7 @@ const columnwiseCheckbox = document.getElementById('columnwise') as HTMLInputEle
 const colorizeNumericCheckbox = document.getElementById('colorize-numeric') as HTMLInputElement;
 const colorizeDatetimeCheckbox = document.getElementById('colorize-datetime') as HTMLInputElement;
 const colorizeCategoricalCheckbox = document.getElementById('colorize-categorical') as HTMLInputElement;
+const colorizeTextCheckbox = document.getElementById('colorize-text') as HTMLInputElement;
 const filterToggle = document.getElementById('filter-toggle') as HTMLButtonElement;
 const filterInput = document.getElementById('filter-input') as HTMLInputElement;
 const filterClear = document.getElementById('filter-clear') as HTMLButtonElement;
@@ -90,6 +91,7 @@ let currentColumnwise = columnwiseCheckbox.checked;
 let currentColorizeNumeric = colorizeNumericCheckbox.checked;
 let currentColorizeDatetime = colorizeDatetimeCheckbox.checked;
 let currentColorizeCategorical = colorizeCategoricalCheckbox.checked;
+let currentColorizeText = colorizeTextCheckbox.checked;
 
 window.addEventListener('message', (event: MessageEvent<HostMessage>) => {
   const message = event.data;
@@ -160,6 +162,7 @@ function requestReload(): void {
     colorizeNumeric: currentColorizeNumeric,
     colorizeDatetime: currentColorizeDatetime,
     colorizeCategorical: currentColorizeCategorical,
+    colorizeText: currentColorizeText,
     sort: sortKeys,
     filter: currentFilter,
   });
@@ -181,12 +184,17 @@ function persistSettings(): void {
     colorizeNumeric: currentColorizeNumeric,
     colorizeDatetime: currentColorizeDatetime,
     colorizeCategorical: currentColorizeCategorical,
+    colorizeText: currentColorizeText,
   });
 }
 
 /** The master "Colorize" button is active when any column type is colorized. */
 function syncMasterButton(): void {
-  const any = currentColorizeNumeric || currentColorizeDatetime || currentColorizeCategorical;
+  const any =
+    currentColorizeNumeric ||
+    currentColorizeDatetime ||
+    currentColorizeCategorical ||
+    currentColorizeText;
   colorizeToggle.classList.toggle('active', any);
   colorizeToggle.setAttribute('aria-pressed', String(any));
 }
@@ -196,6 +204,7 @@ function onColorizeChanged(): void {
   currentColorizeNumeric = colorizeNumericCheckbox.checked;
   currentColorizeDatetime = colorizeDatetimeCheckbox.checked;
   currentColorizeCategorical = colorizeCategoricalCheckbox.checked;
+  currentColorizeText = colorizeTextCheckbox.checked;
   syncMasterButton();
   persistSettings();
   requestReload();
@@ -203,16 +212,24 @@ function onColorizeChanged(): void {
 colorizeNumericCheckbox.addEventListener('change', onColorizeChanged);
 colorizeDatetimeCheckbox.addEventListener('change', onColorizeChanged);
 colorizeCategoricalCheckbox.addEventListener('change', onColorizeChanged);
+colorizeTextCheckbox.addEventListener('change', onColorizeChanged);
 
 // Master toggle: turn everything on if anything is off, else turn all off.
 colorizeToggle.addEventListener('click', () => {
-  const next = !(currentColorizeNumeric || currentColorizeDatetime || currentColorizeCategorical);
+  const next = !(
+    currentColorizeNumeric ||
+    currentColorizeDatetime ||
+    currentColorizeCategorical ||
+    currentColorizeText
+  );
   currentColorizeNumeric = next;
   currentColorizeDatetime = next;
   currentColorizeCategorical = next;
+  currentColorizeText = next;
   colorizeNumericCheckbox.checked = next;
   colorizeDatetimeCheckbox.checked = next;
   colorizeCategoricalCheckbox.checked = next;
+  colorizeTextCheckbox.checked = next;
   syncMasterButton();
   persistSettings();
   requestReload();
@@ -788,6 +805,7 @@ vscode.postMessage({
   colorizeNumeric: currentColorizeNumeric,
   colorizeDatetime: currentColorizeDatetime,
   colorizeCategorical: currentColorizeCategorical,
+  colorizeText: currentColorizeText,
   sort: sortKeys,
   filter: currentFilter,
 });

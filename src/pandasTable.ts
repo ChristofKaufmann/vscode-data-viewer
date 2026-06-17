@@ -61,6 +61,8 @@ export interface DumpOptions {
   colorizeDatetime?: boolean;
   /** Color ordered categorical columns by their rank (default true). */
   colorizeCategorical?: boolean;
+  /** Color unordered/text/bool cells by value, matching the stacked bar (default false). */
+  colorizeText?: boolean;
   /** Multi-column sort keys (primary first); columns are data-column positions, -1 = index. */
   sort?: SortKey[];
   /** A pandas `DataFrame.query` expression; empty = no filter. */
@@ -84,6 +86,7 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
   const colorizeNumeric = options.colorizeNumeric ?? true;
   const colorizeDatetime = options.colorizeDatetime ?? true;
   const colorizeCategorical = options.colorizeCategorical ?? true;
+  const colorizeText = options.colorizeText ?? false;
   // Sort keys become a Python list of (position, descending) tuples (-1 = the
   // index). Filter to safe integers so the literal can't be anything but
   // numbers/bools.
@@ -153,6 +156,65 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '        except Exception:',
     '            pass',
     '    total = len(obj)',
+    // Per-column "nominal" info for unordered/text/bool columns: the stacked-bar
+    // segments AND a value->color map for cell coloring, so the bar and the cells
+    // use the *same* qualitative palette. Built once over the full filtered frame
+    // and reused by both the stats and the colors blocks. value_counts is walked a
+    // count-level at a time against a 9-color budget (tab10 minus the gray C7);
+    // the overflow level + rarer values collapse into a gray "(other)".
+    '    _nominfo = None',
+    '    try:',
+    '        def _nominal_info(_c):',
+    '            if pd.api.types.is_datetime64_any_dtype(_c) or pd.api.types.is_timedelta64_dtype(_c):',
+    '                return None',
+    '            if pd.api.types.is_numeric_dtype(_c) and not pd.api.types.is_bool_dtype(_c):',
+    '                return None',
+    '            if isinstance(_c.dtype, pd.CategoricalDtype) and _c.dtype.ordered:',
+    '                return None',
+    '            _vc = _c.value_counts(dropna=True)',
+    '            if _vc.size == 0:',
+    '                return None',
+    '            _cv = _vc.values',
+    '            _n = int(_cv.shape[0])',
+    '            _budget = 9',
+    '            _i = 0',
+    '            while _i < _n:',
+    '                _lvl = _cv[_i]',
+    '                if _i + _budget < _n and _cv[_i + _budget] == _lvl:',
+    '                    break',
+    '                _j = _i',
+    '                while _j < _n and _cv[_j] == _lvl:',
+    '                    _j += 1',
+    '                _budget -= _j - _i',
+    '                _i = _j',
+    '            _keep = _i',
+    '            _labels = [str(_k) for _k in _vc.index[:_keep]]',
+    '            _counts = [int(_x) for _x in _cv[:_keep]]',
+    '            _other = int(_cv[_keep:].sum())',
+    '            _colors = None',
+    '            _vmap = {}',
+    '            try:',
+    '                import matplotlib as _mpl',
+    '                _qual = _mpl.colormaps["tab10"]',
+    '                _palidx = [0, 1, 2, 3, 4, 5, 6, 8, 9]',
+    '                _hex = ["#%02x%02x%02x" % tuple(int(round(_x * 255)) for _x in _qual(_palidx[_k])[:3]) for _k in range(_keep)]',
+    '                _vmap = {str(_vc.index[_k]): _hex[_k] for _k in range(_keep)}',
+    '                _colors = _hex + (["#888888"] if _other > 0 else [])',
+    '            except Exception:',
+    '                _colors = None',
+    '                _vmap = {}',
+    '            _bl = _labels + (["(other)"] if _other > 0 else [])',
+    '            _bc = _counts + ([_other] if _other > 0 else [])',
+    '            _seg = {"labels": _bl, "counts": _bc, "colors": _colors, "unique": int(_vc.size), "allUnique": bool(_cv[0] == 1)}',
+    '            return {"segments": _seg, "vmap": _vmap}',
+    '        _nominfo = []',
+    '        for _i in range(obj.shape[1]):',
+    '            try:',
+    '                _nominfo.append(_nominal_info(obj.iloc[:, _i]))',
+    '            except Exception:',
+    '                _nominfo.append(None)',
+    '    except Exception:',
+    '        _nominfo = None',
     // Per-column summary stats over the *full* filtered frame (not the truncated
     // head, so counts are exact). Aligned index-first like column_types. The
     // missing (NaN/NaT/None) count is meaningful for every dtype; numeric data
@@ -232,61 +294,6 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '                return {"labels": _labels, "counts": _counts, "colors": _colors}',
     '            except Exception:',
     '                return None',
-    // Unordered discrete columns (object/string, unordered categorical, bool)
-    // get a stacked-bar distribution: the top values by count plus an "(other)"
-    // bucket, tinted with a *qualitative* palette (tab10) so no order is implied.
-    // `unique` carries the full distinct count for the caption.
-    '        def _segments(_c):',
-    '            try:',
-    '                if pd.api.types.is_datetime64_any_dtype(_c) or pd.api.types.is_timedelta64_dtype(_c):',
-    '                    return None',
-    '                if pd.api.types.is_numeric_dtype(_c) and not pd.api.types.is_bool_dtype(_c):',
-    '                    return None',
-    '                if isinstance(_c.dtype, pd.CategoricalDtype) and _c.dtype.ordered:',
-    '                    return None',
-    '                _vc = _c.value_counts(dropna=True)',
-    '                if _vc.size == 0:',
-    '                    return None',
-    // Walk the value counts (descending) one *count level* at a time — a level
-    // is the set of values sharing a count. Keep a level's values as their own
-    // bars only while the whole level fits the 9-color budget; at the first
-    // level that overflows, that level and everything rarer collapse into
-    // "(other)". This way equal-count ties are never split arbitrarily.
-    '                _cv = _vc.values',
-    '                _n = int(_cv.shape[0])',
-    '                _budget = 9',
-    '                _i = 0',
-    '                while _i < _n:',
-    '                    _lvl = _cv[_i]',
-    '                    if _i + _budget < _n and _cv[_i + _budget] == _lvl:',
-    '                        break',
-    '                    _j = _i',
-    '                    while _j < _n and _cv[_j] == _lvl:',
-    '                        _j += 1',
-    '                    _budget -= _j - _i',
-    '                    _i = _j',
-    '                _keep = _i',
-    '                _labels = [str(_k) for _k in _vc.index[:_keep]]',
-    '                _counts = [int(_x) for _x in _cv[:_keep]]',
-    '                _other = int(_cv[_keep:].sum())',
-    '                if _other > 0:',
-    '                    _labels.append("(other)")',
-    '                    _counts.append(_other)',
-    '                _colors = None',
-    '                try:',
-    '                    import matplotlib as _mpl',
-    '                    _qual = _mpl.colormaps["tab10"]',
-    // tab10 minus C7 (#7f7f7f gray), which clashes with the "(other)" gray.
-    '                    _idx = [0, 1, 2, 3, 4, 5, 6, 8, 9]',
-    '                    _colors = ["#%02x%02x%02x" % tuple(int(round(_x * 255)) for _x in _qual(_idx[_k])[:3]) for _k in range(_keep)]',
-    '                    if _other > 0:',
-    '                        _colors.append("#888888")',
-    '                except Exception:',
-    '                    _colors = None',
-    // allUnique: every value occurs once (counts are sorted, so max == 1).
-    '                return {"labels": _labels, "counts": _counts, "colors": _colors, "unique": int(_vc.size), "allUnique": bool(_cv[0] == 1)}',
-    '            except Exception:',
-    '                return None',
     '        stats = [{"missing": _missing(obj.index)}]',
     '        for _i in range(obj.shape[1]):',
     '            _col = obj.iloc[:, _i]',
@@ -298,10 +305,8 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '                _b = _bars(_col)',
     '                if _b is not None:',
     '                    _entry["bars"] = _b',
-    '                else:',
-    '                    _s = _segments(_col)',
-    '                    if _s is not None:',
-    '                        _entry["segments"] = _s',
+    '                elif _nominfo and _nominfo[_i] is not None:',
+    '                    _entry["segments"] = _nominfo[_i]["segments"]',
     '            stats.append(_entry)',
     '    except Exception:',
     '        stats = None',
@@ -414,6 +419,7 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     `        _do_num = ${colorizeNumeric ? 'True' : 'False'}`,
     `        _do_dt = ${colorizeDatetime ? 'True' : 'False'}`,
     `        _do_cat = ${colorizeCategorical ? 'True' : 'False'}`,
+    `        _do_text = ${colorizeText ? 'True' : 'False'}`,
     '        _ncols, _nrows = _raw.shape[1], _raw.shape[0]',
     '        _vals = [None] * _ncols',
     '        _grp = [None] * _ncols',
@@ -442,8 +448,16 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '            _s = _np.concatenate([_m[_np.isfinite(_m)] for _m in _members])',
     '            return (float(_s.min()), float(_s.max())) if _s.size else None',
     '        _ranges = {_g: _grange(_g) for _g in ("num", "datetime", "timedelta")}',
-    '        if _nrows and any(_g is not None for _g in _grp):',
+    // Unordered/text/bool columns are colored per value from the stacked bar\'s
+    // palette (_nominfo[i]["vmap"]); tail values not in the map get the same gray
+    // as the bar\'s "(other)". NaN/NaT stays uncolored. Only when a palette exists
+    // (matplotlib present) and _do_text is on.
+    '        _text_idx = [_i for _i in range(_ncols) if _do_text and _nominfo and _i < len(_nominfo) and _nominfo[_i] and _nominfo[_i]["vmap"]] if _nominfo else []',
+    '        if _nrows and (any(_g is not None for _g in _grp) or _text_idx):',
     '            _cols = [[None] * _nrows for _ in range(_ncols)]',
+    '            for _i in _text_idx:',
+    '                _vm = _nominfo[_i]["vmap"]',
+    '                _cols[_i] = [None if pd.isna(_v) else _vm.get(str(_v), "#888888") for _v in _raw.iloc[:, _i]]',
     '            for _i in range(_ncols):',
     '                if _grp[_i] is None:',
     '                    continue',

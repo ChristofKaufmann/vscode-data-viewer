@@ -185,6 +185,7 @@ test('forwards all Colorize options from ready/refresh to load', async () => {
     colorizeNumeric: true,
     colorizeDatetime: true,
     colorizeCategorical: true,
+    colorizeText: true,
     sort: [],
     filter: '',
   });
@@ -197,6 +198,7 @@ test('forwards all Colorize options from ready/refresh to load', async () => {
     colorizeNumeric: true,
     colorizeDatetime: false,
     colorizeCategorical: false,
+    colorizeText: false,
     sort: [{ column: 1, descending: true }],
     filter: 'a > 1',
   });
@@ -210,6 +212,7 @@ test('forwards all Colorize options from ready/refresh to load', async () => {
       colorizeNumeric: true,
       colorizeDatetime: true,
       colorizeCategorical: true,
+      colorizeText: true,
       sort: [],
       filter: '',
     },
@@ -220,6 +223,7 @@ test('forwards all Colorize options from ready/refresh to load', async () => {
       colorizeNumeric: true,
       colorizeDatetime: false,
       colorizeCategorical: false,
+      colorizeText: false,
       sort: [{ column: 1, descending: true }],
       filter: 'a > 1',
     },

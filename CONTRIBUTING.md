@@ -116,8 +116,14 @@ Range grouping (in `buildDumpCode`):
   a group the range is shared, or per-column when **Columnwise** is on.
 - **Ordered categoricals** are colored by code over their full `0..n-1` category
   range (so the top category keeps the brightest color even if absent), and are
-  **always per-column**. Unordered categoricals are left uncolored (their code
-  order is arbitrary).
+  **always per-column**.
+- **Unordered / text / bool** columns (the **Colorize text** toggle, `_do_text`)
+  are colored *qualitatively*, not on a gradient: each cell takes its value's
+  color from the **same** `_nominal_info` map that drives the stacked-bar
+  distribution (tab10 minus the gray C7), and tail values get the bar's gray
+  "(other)". This is a per-value lookup, separate from the gradient machinery
+  above — and it reuses `_nominal_info` so a value's bar color and cell color
+  can't diverge.
 - **Centering is skipped** for datetime (the 1970 epoch makes 0 meaningless) and
   categorical (0 is just the first category); it applies to numeric and timedelta.
 
@@ -207,14 +213,16 @@ per-bar fill is applied in `main.ts` via `rect.style.fill` (DOM CSSOM, which is
 CSP-safe and beats the stylesheet's default fill — an inline `style=` attribute
 in the SVG string would be blocked by `style-src`). No ticks or min/median/max.
 **Unordered discrete** columns — text/object, unordered categorical, bool —
-get a horizontal stacked bar (`_segments` in `buildDumpCode`). It walks
-`value_counts` (descending) a **count level** at a time — a level is the set of
-values sharing a count — keeping a level's values as their own bars only while
-the whole level fits the 9-color budget; the first level that overflows (and
-everything rarer) collapses into "(other)", so equal-count ties are never split
-arbitrarily. Colors are a **qualitative** palette (`tab10` minus C7, the gray
-that would clash with the gray "(other)" bucket); `unique` carries the full
-distinct count (shown as a caption). `stackedBarSvg` lays the segments out
+get a horizontal stacked bar from `_nominal_info` in `buildDumpCode` (computed
+once per column and reused for the cell coloring above, so bar and cells share
+one palette). It walks `value_counts` (descending) a **count level** at a time —
+a level is the set of values sharing a count — keeping a level's values as their
+own bars only while the whole level fits the 9-color budget; the first level that
+overflows (and everything rarer) collapses into "(other)", so equal-count ties
+are never split arbitrarily. Colors are a **qualitative** palette (`tab10` minus
+C7, the gray that would clash with the gray "(other)" bucket); `_nominal_info`
+also returns the `vmap` (value→color) used for cell backgrounds; `unique` carries
+the full distinct count (shown as a caption). `stackedBarSvg` lays the segments out
 proportionally; fills are applied per-segment via `rect.style.fill`. Because the
 segments have varying widths, hover hit-testing uses `segmentAt` (cumulative
 count) rather than the uniform `binIndexAt`, and the bubble anchors above the

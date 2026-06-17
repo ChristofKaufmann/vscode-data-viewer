@@ -10,6 +10,7 @@ export interface ColorizeSettings {
   colorizeNumeric: boolean;
   colorizeDatetime: boolean;
   colorizeCategorical: boolean;
+  colorizeText: boolean;
   colormap: string;
   center: boolean;
   columnwise: boolean;
@@ -23,6 +24,7 @@ export function getColorizeSettings(context: vscode.ExtensionContext): ColorizeS
     colorizeNumeric: saved.colorizeNumeric ?? true,
     colorizeDatetime: saved.colorizeDatetime ?? true,
     colorizeCategorical: saved.colorizeCategorical ?? true,
+    colorizeText: saved.colorizeText ?? false,
     colormap: saved.colormap ?? DEFAULT_COLORMAP,
     center: saved.center ?? false,
     columnwise: saved.columnwise ?? false,

@@ -22,17 +22,19 @@ in the spirit of Data Wrangler but starting small.
 
 - **Colorize mode** (the **Colorize** toolbar button, on by default) — cells are
   colored by value, computed in pandas/matplotlib. The **Colorize** button is a
-  select-all toggle (active when any type is colored) over three type toggles in
+  select-all toggle (active when any type is colored) over four type toggles in
   the popover: **Colorize numeric**,
-  **Colorize datetime** (by timestamp), and **Colorize categorical** (ordered
-  categoricals only, by rank). Numeric, datetime and timedelta columns each form a
-  separate value-range group so they never distort each other; ordered categoricals
-  are ranked per column over their full set of categories.
+  **Colorize datetime** (by timestamp), **Colorize categorical** (ordered
+  categoricals only, by rank), and **Colorize text** (unordered/text/bool cells
+  by value, using the same qualitative palette as their distribution bar — tail
+  values get its gray "(other)"). Numeric, datetime and timedelta columns each
+  form a separate value-range group so they never distort each other; ordered
+  categoricals are ranked per column over their full set of categories.
   A chevron button opens the popover with those toggles plus a **colormap** selector
   (viridis, plasma, coolwarm, …) with a small preview swatch, a **Center at 0**
   toggle (symmetric range, useful
   with diverging colormaps), and a **Columnwise** toggle (a separate vmin/vmax per
-  column instead of one per group). Non-numeric/NaN/NaT cells stay uncolored;
+  column instead of one per group). NaN/NaT cells stay uncolored;
   changing any option recomputes colors in Python on reload. All choices are
   remembered (extension global state) and carry over to the next view.
   (`DEFAULT_COLORMAP` in `pandasTable.ts` sets the default colormap.)

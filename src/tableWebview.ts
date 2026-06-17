@@ -47,6 +47,7 @@ export function configureTableWebview(
         colorizeNumeric: message.colorizeNumeric,
         colorizeDatetime: message.colorizeDatetime,
         colorizeCategorical: message.colorizeCategorical,
+        colorizeText: message.colorizeText,
         colormap: message.colormap,
         center: message.center,
         columnwise: message.columnwise,
@@ -85,7 +86,10 @@ function getHtml(
 
   // The Colorize toggle is "active" when any column type is colorized.
   const anyColorize =
-    settings.colorizeNumeric || settings.colorizeDatetime || settings.colorizeCategorical;
+    settings.colorizeNumeric ||
+    settings.colorizeDatetime ||
+    settings.colorizeCategorical ||
+    settings.colorizeText;
 
   return /* html */ `<!DOCTYPE html>
 <html lang="en">
@@ -116,6 +120,9 @@ function getHtml(
         </label>
         <label class="field-check" title="Color ordered categorical columns by rank">
           <input type="checkbox" id="colorize-categorical"${settings.colorizeCategorical ? ' checked' : ''}> Colorize categorical
+        </label>
+        <label class="field-check" title="Color text / unordered / boolean cells by value, matching the distribution bar">
+          <input type="checkbox" id="colorize-text"${settings.colorizeText ? ' checked' : ''}> Colorize text
         </label>
         <label class="field">
           <span>Colormap</span>

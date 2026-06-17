@@ -216,9 +216,9 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /_entry\["bars"\] = _b/);
   // Bars use the same colormap as Colorize.
   assert.match(buildDumpCode('x', { colormap: 'plasma' }), /_cm = _mpl\.colormaps\["plasma"\]/);
-  // Unordered discrete columns get a stacked bar: top values + "(other)", a
-  // qualitative palette, and the distinct count; attached when not numeric/ordinal.
-  assert.match(code, /def _segments\(_c\):/);
+  // Unordered/text/bool columns: a shared _nominal_info builds both the stacked
+  // bar segments and a value->color map (vmap) for cell coloring.
+  assert.match(code, /def _nominal_info\(_c\):/);
   assert.match(code, /_vc = _c\.value_counts\(dropna=True\)/);
   assert.match(code, /colormaps\["tab10"\]/);
   // Values are kept a whole count-level at a time against a 9-color budget; a
@@ -226,11 +226,16 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   // palette skips tab10's C7 (gray) so it can't clash with the "(other)" gray.
   assert.match(code, /_budget = 9/);
   assert.match(code, /if _i \+ _budget < _n and _cv\[_i \+ _budget\] == _lvl:/);
-  assert.match(code, /_idx = \[0, 1, 2, 3, 4, 5, 6, 8, 9\]/);
-  assert.match(code, /_labels\.append\("\(other\)"\)/);
+  assert.match(code, /_palidx = \[0, 1, 2, 3, 4, 5, 6, 8, 9\]/);
+  assert.match(code, /_vmap = \{str\(_vc\.index\[_k\]\): _hex\[_k\] for _k in range\(_keep\)\}/);
   assert.match(code, /"unique": int\(_vc\.size\)/);
   assert.match(code, /"allUnique": bool\(_cv\[0\] == 1\)/);
-  assert.match(code, /_entry\["segments"\] = _s/);
+  assert.match(code, /_entry\["segments"\] = _nominfo\[_i\]\["segments"\]/);
+  // Text cell coloring: gated by _do_text (off by default), cells map via vmap,
+  // tail -> gray.
+  assert.match(buildDumpCode('x', { colorizeText: true }), /_do_text = True/);
+  assert.match(code, /_do_text = False/);
+  assert.match(code, /_vm\.get\(str\(_v\), "#888888"\)/);
   // The whole filter-hint example is built in Python (real dtypes). It ships as
   // `filterHint` and the webview just wraps it.
   assert.match(code, /"filterHint": %s/);

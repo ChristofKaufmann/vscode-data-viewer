@@ -61,6 +61,7 @@ export interface ColorizeChoices {
   colorizeNumeric?: boolean;
   colorizeDatetime?: boolean;
   colorizeCategorical?: boolean;
+  colorizeText?: boolean;
 }
 
 export type WebviewMessage =
@@ -77,6 +78,7 @@ export type WebviewMessage =
       colorizeNumeric: boolean;
       colorizeDatetime: boolean;
       colorizeCategorical: boolean;
+      colorizeText: boolean;
     };
 
 /** Extension host -> webview */
