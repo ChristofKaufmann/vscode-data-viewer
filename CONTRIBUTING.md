@@ -268,6 +268,20 @@ on `#stats-row` derives the bin from the cursor's position over the SVG
 (`binIndexAt`/`histogramBin`, both pure) — no per-bar hit targets needed. It's
 centered over the bin and flips above/below the bar near the viewport top.
 
+**Click to filter.** Each distribution ships a `filters` array parallel to its
+`counts`: a ready-made pandas `query` clause per bin/value — `col >= lo & col <
+hi` for histograms (last bin closed with `<=` to match `np.histogram`; numeric
+edges for numeric, quoted date/duration label strings for datetime/timedelta),
+`col == value` for bars and segments (`(other)` is null). They're built in Python
+with the shared `_qcol`/`_lit`/`_rhs` helpers (the same ones the filter hint uses,
+hoisted above `_nominal_info` so both can reach them), so column quoting and
+datetime/timedelta/categorical literal formatting stay in one place. A delegated
+`click` on `#stats-row` reuses the bubble's cursor→item math (`segmentAt` /
+`binIndexAt`) to pick the clause, then opens the filter bar and applies it. The
+click is scoped to `svg.hist`/`svg.stacked` via `closest()` so the labels and the
+unique-count caption below the bars stay selectable (the bubble isn't scoped —
+showing it over a label is harmless).
+
 When adding a stat: extend `ColumnStat` and the Python `stats` list together, add
 a sub-row in `buildStatsRow` (tagged with a `stat-*` class + a body toggle), and
 keep any formatting/geometry in the pure `webview/stats.ts` so it's unit-tested.

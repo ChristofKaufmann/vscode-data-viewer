@@ -175,6 +175,26 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '        except Exception:',
     '            pass',
     '    total = len(obj)',
+    // Shared query-expression helpers, used to build both the filter-hint
+    // placeholder and the per-bin/per-value "click to filter" clauses on the
+    // distribution graphs. `_qcol` backticks a name that isn't a clean identifier;
+    // `_lit` makes a Python literal (unwrapping numpy scalars); `_rhs` quotes
+    // datetime/timedelta as a string (their repr is a Timestamp(...)/Timedelta(...)
+    // call query can't parse) and everything else as a literal.
+    '    import keyword as _kw',
+    '    def _lit(_v):',
+    '        try:',
+    '            _v = _v.item()',
+    '        except Exception:',
+    '            pass',
+    '        return repr(_v)',
+    '    def _qcol(_name):',
+    '        _s = str(_name)',
+    '        return _s if _s.isidentifier() and not _kw.iskeyword(_s) else "`" + _s + "`"',
+    '    def _is_time(_x):',
+    '        return pd.api.types.is_datetime64_any_dtype(_x) or pd.api.types.is_timedelta64_dtype(_x)',
+    '    def _rhs(_v, _t):',
+    '        return repr(str(_v)) if _t else _lit(_v)',
     // Per-column "nominal" info for unordered/text/bool columns: the stacked-bar
     // segments AND a value->color map for cell coloring, so the bar and the cells
     // use the *same* qualitative palette. Built once over the full filtered frame
@@ -224,7 +244,11 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '                _vmap = {}',
     '            _bl = _labels + (["(other)"] if _other > 0 else [])',
     '            _bc = _counts + ([_other] if _other > 0 else [])',
-    '            _seg = {"labels": _bl, "counts": _bc, "colors": _colors, "unique": int(_vc.size), "allUnique": bool(_cv[0] == 1)}',
+    // One "col == value" clause per kept value, for click-to-filter; "(other)" has
+    // no single-value clause, so it gets null (clicking it does nothing).
+    '            _q = _qcol(_c.name)',
+    '            _fl = ["%s == %s" % (_q, _lit(_vc.index[_k])) for _k in range(_keep)] + ([None] if _other > 0 else [])',
+    '            _seg = {"labels": _bl, "counts": _bc, "colors": _colors, "filters": _fl, "unique": int(_vc.size), "allUnique": bool(_cv[0] == 1)}',
     '            return {"segments": _seg, "vmap": _vmap}',
     '        _nominfo = []',
     '        for _i in range(obj.shape[1]):',
@@ -381,6 +405,9 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '                _vc = _c.value_counts()',
     '                _counts = [int(_vc.get(_k, 0)) for _k in _cats]',
     '                _labels = [str(_k) for _k in _cats]',
+    // One "col == value" clause per category, for click-to-filter.
+    '                _q = _qcol(_c.name)',
+    '                _filters = ["%s == %s" % (_q, _lit(_k)) for _k in _cats]',
     '                _colors = None',
     // Tint the bars only when the categorical Colorize toggle is on, so turning
     // Colorize off leaves them in the default single fill (like the cells and the
@@ -397,7 +424,29 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '                        _colors.append("#%02x%02x%02x" % (_rgb[0], _rgb[1], _rgb[2]))',
     '                  except Exception:',
     '                    _colors = None',
-    '                return {"labels": _labels, "counts": _counts, "colors": _colors}',
+    '                return {"labels": _labels, "counts": _counts, "colors": _colors, "filters": _filters}',
+    '            except Exception:',
+    '                return None',
+    // One "col >= lo & col < hi" clause per histogram bin, for click-to-filter.
+    // The last bin is closed (col <= hi) to match np.histogram. Edges come from the
+    // numeric grid for numeric columns, or the date/duration label strings (quoted)
+    // for datetime/timedelta — both directly usable in a query expression.
+    '        def _hist_filters(_c, _h):',
+    '            try:',
+    '                _q = _qcol(_c.name)',
+    '                _lbls = _h.get("labels")',
+    '                if _lbls:',
+    '                    _ev = ["%r" % _s for _s in _lbls["edges"]]',
+    '                else:',
+    '                    _ev = ["%r" % _e for _e in _h["edges"]]',
+    '                _n = len(_ev) - 1',
+    '                if _n < 1:',
+    '                    return None',
+    '                _out = []',
+    '                for _k in range(_n):',
+    '                    _op = "<=" if _k == _n - 1 else "<"',
+    '                    _out.append("%s >= %s & %s %s %s" % (_q, _ev[_k], _q, _op, _ev[_k + 1]))',
+    '                return _out',
     '            except Exception:',
     '                return None',
     '        stats = [{"missing": _missing(obj.index)}]',
@@ -409,6 +458,7 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '            _entry = {"missing": _missing(_col)}',
     '            _h = _hist(_col)',
     '            if _h is not None:',
+    '                _h["filters"] = _hist_filters(_col, _h)',
     '                _entry["histogram"] = _h',
     '                if pd.api.types.is_datetime64_any_dtype(_col):',
     '                    _hgroup.append((_h, "datetime"))',
@@ -464,20 +514,6 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     // quoted str() for datetime/timedelta (their repr is a Timestamp(...) call).
     '    filter_hint = None',
     '    try:',
-    '        import keyword as _kw',
-    '        def _lit(_v):',
-    '            try:',
-    '                _v = _v.item()',
-    '            except Exception:',
-    '                pass',
-    '            return repr(_v)',
-    '        def _qcol(_name):',
-    '            _s = str(_name)',
-    '            return _s if _s.isidentifier() and not _kw.iskeyword(_s) else "`" + _s + "`"',
-    '        def _is_time(_x):',
-    '            return pd.api.types.is_datetime64_any_dtype(_x) or pd.api.types.is_timedelta64_dtype(_x)',
-    '        def _rhs(_v, _t):',
-    '            return repr(str(_v)) if _t else _lit(_v)',
     '        _cols = list(obj.columns)',
     '        if _cols:',
     '            _dt = obj.dtypes',

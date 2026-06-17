@@ -514,6 +514,12 @@ body:not(.stats-hist) #stats-row .stat-hist {
   fill: var(--vscode-charts-blue, var(--vscode-foreground));
 }
 
+/* Distribution cells with data (data-col is set) are click-to-filter. */
+.cell.stat-hist[data-col] .hist,
+.cell.stat-hist[data-col] .stacked {
+  cursor: pointer;
+}
+
 /* Stacked-bar (unordered) variant: the bar is vertically centered with its
    unique-count caption; per-segment fill is set inline from the DOM. */
 .cell.stat-hist.stat-nominal {

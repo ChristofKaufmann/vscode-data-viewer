@@ -568,6 +568,43 @@ function showHistBubble(e: MouseEvent): void {
 statsRow.addEventListener('mousemove', showHistBubble);
 statsRow.addEventListener('mouseleave', hideHistBubble);
 
+// Click-to-filter: clicking a distribution bin/value sets the filter to that
+// bin's/value's pandas clause (built in Python with the real dtypes) and applies
+// it — same cursor→item math as the hover bubble.
+function filterFromStat(e: MouseEvent): void {
+  // Only the bars themselves filter — not the min/median/max labels or the
+  // unique-count caption below them (so those stay selectable/copyable).
+  const svg = (e.target as Element).closest('svg.hist, svg.stacked') as SVGElement | null;
+  const cell = svg?.closest('.cell.stat-hist') as HTMLElement | null;
+  const col = cell?.dataset.col ? Number(cell.dataset.col) : -1;
+  const stat = col >= 0 ? columnStats?.[col] : undefined;
+  const counts = stat?.histogram?.counts ?? stat?.bars?.counts ?? stat?.segments?.counts;
+  if (!svg || !stat || !counts || !counts.length) {
+    return;
+  }
+  const rect = svg.getBoundingClientRect();
+  const fx = (e.clientX - rect.left) / rect.width;
+  let clause: string | null | undefined;
+  if (stat.segments) {
+    clause = stat.segments.filters?.[segmentAt(counts, fx).index];
+  } else {
+    const bin = binIndexAt(fx, counts.length);
+    clause = (stat.histogram?.filters ?? stat.bars?.filters)?.[bin];
+  }
+  if (clause) {
+    applyFilterClause(clause);
+  }
+}
+statsRow.addEventListener('click', filterFromStat);
+
+/** Opens the filter bar, sets it to `clause`, and applies it (reloads). */
+function applyFilterClause(clause: string): void {
+  filterInput.value = clause;
+  document.body.classList.add('filtering');
+  filterToggle.setAttribute('aria-expanded', 'true');
+  syncFilter();
+}
+
 /** Shows/clears the filter error from the last load (data shown unfiltered). */
 function showFilterError(message: string | null): void {
   filterError.textContent = message ?? '';

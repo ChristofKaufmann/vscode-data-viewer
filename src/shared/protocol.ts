@@ -41,13 +41,21 @@ export interface ColumnStat {
     median: number;
     max: number;
     labels?: { edges: string[]; min: string; median: string; max: string };
+    /** A pandas `query` clause per bin (`col >= lo & col < hi`) for click-to-filter. */
+    filters?: (string | null)[] | null;
   };
   /**
    * Bar chart for ordered-categorical columns: one entry per category, in
    * category (rank) order. `colors` are the colormap sampled at each
    * rank (a "#rrggbb" per bar), or null if matplotlib was unavailable.
+   * `filters` is a `col == value` query clause per category (click-to-filter).
    */
-  bars?: { labels: string[]; counts: number[]; colors: (string | null)[] | null };
+  bars?: {
+    labels: string[];
+    counts: number[];
+    colors: (string | null)[] | null;
+    filters?: (string | null)[] | null;
+  };
   /**
    * Stacked-bar distribution for unordered discrete columns (object/string,
    * unordered categorical, bool): the top values by count plus an "(other)"
@@ -58,6 +66,11 @@ export interface ColumnStat {
     labels: string[];
     counts: number[];
     colors: (string | null)[] | null;
+    /**
+     * A `col == value` query clause per kept value (click-to-filter); the
+     * "(other)" segment, having no single value, is null.
+     */
+    filters?: (string | null)[] | null;
     unique: number;
     /** True when every value occurs exactly once (the column has no repeats). */
     allUnique: boolean;

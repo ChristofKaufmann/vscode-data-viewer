@@ -145,6 +145,8 @@ export interface Histogram {
   edges: number[];
   /** Per-bin colormap fill (bin center mapped over the data extent), or null. */
   colors?: (string | null)[] | null;
+  /** Per-bin pandas `query` clause (`col >= lo & col < hi`) for click-to-filter. */
+  filters?: (string | null)[] | null;
   /** Actual data min/median/max positions, within the edge range. */
   min: number;
   median: number;

@@ -213,6 +213,16 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /_vv\.astype\("datetime64\[ns\]"\)\.astype\("int64"\)/);
   assert.match(code, /_vv\.astype\("timedelta64\[ns\]"\)\.astype\("int64"\)/);
   assert.match(code, /"labels": \{"edges": _elabels/);
+  // Click-to-filter: each histogram bin ships a `col >= lo & col < hi` clause
+  // (last bin closed with <=); numeric uses the numeric edges, datetime/timedelta
+  // the quoted label strings.
+  assert.match(code, /def _hist_filters\(_c, _h\):/);
+  assert.match(code, /_op = "<=" if _k == _n - 1 else "<"/);
+  assert.match(code, /_out\.append\("%s >= %s & %s %s %s" % \(_q, _ev\[_k\], _q, _op, _ev\[_k \+ 1\]\)\)/);
+  assert.match(code, /_h\["filters"\] = _hist_filters\(_col, _h\)/);
+  // The query-clause helpers (_qcol/_lit/_rhs/_is_time) are defined once, before
+  // _nominal_info, so the stats clauses and the filter hint share them.
+  assert.ok(code.indexOf('def _qcol(_name):') < code.indexOf('def _nominal_info(_c):'));
   // Histogram bars are tinted by their bin center on the colormap, using the same
   // range as the cell coloring: per-column when columnwise, else shared across the
   // type group, and centered at 0 for numeric/timedelta (not datetime).
@@ -242,6 +252,9 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /_entry\["bars"\] = _b/);
   // Bars use the same colormap as Colorize.
   assert.match(buildDumpCode('x', { colormap: 'plasma' }), /_cm = _mpl\.colormaps\["plasma"\]/);
+  // Click-to-filter: a per-category `col == value` clause rides along with bars.
+  assert.match(code, /_filters = \["%s == %s" % \(_q, _lit\(_k\)\) for _k in _cats\]/);
+  assert.match(code, /"filters": _filters/);
   // Unordered/text/bool columns: a shared _nominal_info builds both the stacked
   // bar segments and a value->color map (vmap) for cell coloring.
   assert.match(code, /def _nominal_info\(_c\):/);
@@ -257,6 +270,8 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   assert.match(code, /"unique": int\(_vc\.size\)/);
   assert.match(code, /"allUnique": bool\(_cv\[0\] == 1\)/);
   assert.match(code, /_entry\["segments"\] = _nominfo\[_i\]\["segments"\]/);
+  // Click-to-filter: a `col == value` clause per kept value, null for "(other)".
+  assert.match(code, /_fl = \["%s == %s" % \(_q, _lit\(_vc\.index\[_k\]\)\) for _k in range\(_keep\)\] \+ \(\[None\] if _other > 0 else \[\]\)/);
   // Text cell coloring: gated by _do_text (off by default), cells map via vmap,
   // tail -> gray.
   assert.match(buildDumpCode('x', { colorizeText: true }), /_do_text = True/);
