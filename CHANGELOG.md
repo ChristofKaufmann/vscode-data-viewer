@@ -6,13 +6,14 @@
   Jupyter extension's VARIABLES panel — click the data viewer icon next to a variable
 - View **CSV/TSV** files in a table, loaded with `pandas.read_csv` (delimiter
   auto-detected: comma, semicolon, tab, pipe) so files behave exactly like
-  DataFrames viewed from a kernel
+  DataFrames viewed from a kernel. Open via right-click → **Open in Data Viewer**
 - View **JSON Lines** (`*.jsonl`/`*.ndjson`) via `pandas.read_json(lines=True)`
   (right-click → **Open in Data Viewer**, like CSV)
 - View **Parquet** (`*.parquet`/`*.pq`) and **Feather** (`*.feather`) files via
   `pandas.read_parquet`/`read_feather` — the viewer opens them by default (needs
   `pyarrow`, or `fastparquet` for Parquet, in the interpreter). `*.arrow` files
   open via right-click → **Open in Data Viewer**
+- View **Numpy** files (`*.npy`/`*.npz`) with a single 2D array or multiple 1D array of the same size as columns.
 - **Compressed** files are handled too — pandas infers the compression, so
   `data.csv.gz`, `sales.tsv.bz2`, `t.parquet.zip`, etc. (`.gz`/`.bz2`/`.zip`/
   `.xz`/`.zst`/`.tar` and `.tar.*`) open like their uncompressed forms
@@ -86,7 +87,10 @@
 - Numeric columns are detected and right-aligned
 - Sticky header and index column, theme-aware styling
 - Status bar with row/column counts
-- pandas is the single data engine: both paths run the same serialization code,
+- Pandas is the single data engine: both paths run the same serialization code,
 in the notebook's kernel for variables and in the selected Python interpreter
 (falling back to `python3`) for files. Viewing files therefore requires a
 Python environment with pandas installed.
+- Data is truncated to the first 100,000 rows for now; the status bar says so when it happens.
+- Viewing variables from debugger is supported.
+- Quick filter by clicking on the distribution graph bins or values.

@@ -2,6 +2,20 @@
 
 View tabular Jupyter variables and data files.
 
+## Main Features
+
+- View data in a **tabular grid** with sticky index and column headers.
+- Show **dtype** and number of **missing values** per column.
+- **Sort** with multiple keys.
+- Draw distribution **graphs** for each column, depending on data type:
+  - Numeric column → Histogram
+  - DateTime or TimeDelta column → Histogram
+  - Ordered Categorical column → Bar Plot
+  - String or Boolean column → Stacked Bar Plot
+- **Quick filter** data from the distribution graphs.
+- **Colorize** cells and graphs using a colormap with many settings.
+- **Filter** using [Pandas' query syntax](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.query.html).
+
 ## Usage
 
 - **Parquet** files open in the viewer directly (it's their default editor)
@@ -75,8 +89,3 @@ Row storage stays in the extension host (instead of shipping everything into
 the webview), and pandas being the single engine means later features like
 sorting, filtering, and column statistics can be pandas operations with
 identical behavior for files and variables.
-
-## Ideas for later
-
-- More column statistics (min/max/mean, distinct counts) and richer plots
-  (datetime/timedelta histograms, per-bin hover) in the statistics rows

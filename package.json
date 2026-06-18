@@ -1,9 +1,9 @@
 {
   "name": "data-viewer",
   "displayName": "Data Viewer",
-  "description": "View tabular data files (CSV/TSV) in a fast, read-only table.",
+  "description": "View tabular Jupyter variables and data files.",
   "version": "0.0.1",
-  "publisher": "ckaufmann",
+  "publisher": "ChristofKaufmann",
   "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
@@ -15,7 +15,12 @@
   "keywords": [
     "jupyterVariableViewers",
     "csv",
+    "npy",
+    "jupyter",
     "dataframe",
+    "array",
+    "parquet",
+    "feather",
     "data viewer"
   ],
   "main": "./dist/extension.js",
