@@ -4,6 +4,7 @@
   "description": "View tabular Jupyter variables and data files.",
   "version": "0.0.1",
   "publisher": "ChristofKaufmann",
+  "icon": "icon/icon.png",
   "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"

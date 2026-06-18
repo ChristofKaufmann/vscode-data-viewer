@@ -115,6 +115,9 @@ async function openVariable(
     vscode.ViewColumn.Active,
     { retainContextWhenHidden: true }
   );
+  // Tab icon (variable views get a webview panel, which otherwise shows a generic
+  // glyph; file views are custom editors and pick up the file-type icon instead).
+  panel.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icon', 'icon.png');
   const subscription = configureTableWebview(panel.webview, context, load);
   panel.onDidDispose(() => subscription.dispose());
 }
@@ -196,6 +199,9 @@ async function openDebugVariable(
     vscode.ViewColumn.Active,
     { retainContextWhenHidden: true }
   );
+  // Tab icon (variable views get a webview panel, which otherwise shows a generic
+  // glyph; file views are custom editors and pick up the file-type icon instead).
+  panel.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icon', 'icon.png');
   const subscription = configureTableWebview(panel.webview, context, load);
   panel.onDidDispose(() => subscription.dispose());
 }
