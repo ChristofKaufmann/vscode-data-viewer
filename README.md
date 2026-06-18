@@ -2,11 +2,14 @@
 
 View tabular Jupyter variables and data files.
 
+![Data Viewer with default settings](images/default-settings.png)
+
 ## Main Features
 
 - View data in a **tabular grid** with sticky index and column headers.
 - Show **dtype** and number of **missing values** per column.
 - **Sort** with multiple keys.
+- **Filter** using [Pandas' query syntax](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.query.html).
 - Draw distribution **graphs** for each column, depending on data type:
   - Numeric column → Histogram
   - DateTime or TimeDelta column → Histogram
@@ -14,23 +17,32 @@ View tabular Jupyter variables and data files.
   - String or Boolean column → Stacked Bar Plot
 - **Quick filter** data from the distribution graphs.
 - **Colorize** cells and graphs using a colormap with many settings.
-- **Filter** using [Pandas' query syntax](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.query.html).
 
 ## Usage
 
-- **Parquet** files open in the viewer directly (it's their default editor)
-- For **CSV/TSV** (the text editor stays the default): right-click the file →
-  **Open in Data Viewer**, or right-click an editor tab → **Reopen Editor
-  With… → Data Viewer**, or run **Data Viewer: Open in Data Viewer** from the
-  command palette
+### View Data
 
-The default (text) editor is untouched; the viewer is opt-in per file.
+Load Jupyter variables, when executing a Jupyter notebook or a Python script with the interactive window. You need to grant kernel access once. You can see the dtypes, enable the missing data count and refresh the table.
 
-For Jupyter variables: open a notebook, run a cell, open the **Jupyter → Variables**
-panel and click the table icon next to a DataFrame. The first use prompts you to
-grant this extension access to Jupyter kernels (managed later via
-**Jupyter: Manage Access To Jupyter Kernels**). Data is truncated to the
-first 100,000 rows for now; the status bar says so when it happens.
+![Load Jupyter variable with Data viewer](images/open-jupyter-variable.gif)
+
+Open files. *Note: Data types are not inferred from CSV or TSV files.* | View variables in debug mode.
+---------------------------------------------------------------------- | -----------------------------
+![Mouse pointing at "Open in Data Viewer" in CSV file context menu](images/open-in-data-viewer.png) | ![Mouse pointing at "View Value in Data Viewer" in debug variable context menu](images/open-from-debugger.png)
+
+### Filter
+
+Filter data using pandas query syntax.
+
+![Filter data using query syntax](images/filter.gif)
+
+### Sort
+
+Stable sort with multiple keys (last has priority).
+
+![Sort data using multiple columns](images/sort.gif)
+
+### Graphs, Quick Filter, Colorize
 
 ## Development
 

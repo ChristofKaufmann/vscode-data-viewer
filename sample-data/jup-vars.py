@@ -22,10 +22,16 @@ cities["size_class"] = pd.Categorical(
 cities
 
 # %%
+# Refresh test
+# View the graph of column city before the following code (all gray).
+# Then execute this code, refresh (2/11 blue + 9/11 gray).
+cities = cities.replace('Cologne', 'Köln')
+cities.loc[10, 'city'] = cities.loc[1, 'city']
+
+# %%
 # DatetimeIndex — shown as the leftmost column, labelled "last_census".
 cities_by_date = cities.dropna(subset=["last_census"]).set_index("last_census")
 cities_by_date
-
 # %%
 # MultiIndex — its level names join in the index column header ("country, city").
 cities_multi = cities.set_index(["country", "city"])
