@@ -1,0 +1,24 @@
+# Test infrastructure
+.vscode-test/**
+.vscode-test.mjs
+test/**
+tsconfig.test.json
+
+# Manual testing notebooks (local only)
+sample-data/**
+
+# CI/CD
+.github/**
+
+# Misc dev files
+.vscode/**
+.claude/**
+.gitignore
+*.vsix
+CONTRIBUTING.md
+esbuild.js
+icon/plot_icon.py
+images/**
+node_modules/**
+src/**
+tsconfig.json
