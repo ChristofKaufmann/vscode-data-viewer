@@ -55,6 +55,10 @@ export interface ColumnStat {
     counts: number[];
     colors: (string | null)[] | null;
     filters?: (string | null)[] | null;
+    /** Distinct observed values (nonzero categories), for the unique-count caption. */
+    unique: number;
+    /** True when every observed value occurs exactly once. */
+    allUnique: boolean;
   };
   /**
    * Stacked-bar distribution for unordered discrete columns (object/string,

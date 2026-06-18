@@ -439,6 +439,12 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     // One "col == value" clause per category, for click-to-filter.
     '                _q = _qcol(_c.name)',
     '                _filters = ["%s == %s" % (_q, _lit(_k)) for _k in _cats]',
+    // Distinct *observed* values (categories with a nonzero count), for the same
+    // "N unique" caption the unordered stacked bar shows; allUnique when each
+    // observed value occurs exactly once.
+    '                _present = [_x for _x in _counts if _x > 0]',
+    '                _unique = len(_present)',
+    '                _all_unique = bool(_present) and max(_present) == 1',
     '                _colors = None',
     // Tint the bars only when the categorical Colorize toggle is on, so turning
     // Colorize off leaves them in the default single fill (like the cells and the
@@ -455,7 +461,7 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '                        _colors.append("#%02x%02x%02x" % (_rgb[0], _rgb[1], _rgb[2]))',
     '                  except Exception:',
     '                    _colors = None',
-    '                return {"labels": _labels, "counts": _counts, "colors": _colors, "filters": _filters}',
+    '                return {"labels": _labels, "counts": _counts, "colors": _colors, "filters": _filters, "unique": _unique, "allUnique": _all_unique}',
     '            except Exception:',
     '                return None',
     // One "col >= lo & col < hi" clause per histogram bin, for click-to-filter.

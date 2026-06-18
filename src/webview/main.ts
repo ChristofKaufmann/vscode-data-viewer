@@ -435,6 +435,9 @@ function buildStatsRow(): void {
         cell.appendChild(cap);
         cell.dataset.col = String(c);
       } else if (bars && bars.counts.length) {
+        // Reserve the same bottom band the numeric histogram uses (ticks + axis)
+        // so the bars stop at the same baseline instead of filling the whole cell.
+        cell.classList.add('stat-ordinal');
         cell.innerHTML = histogramSvg(bars.counts);
         // Tint each bar with its category's colormap color (DOM .style.fill is
         // CSP-safe and overrides the default fill from the stylesheet).
@@ -447,6 +450,12 @@ function buildStatsRow(): void {
             }
           });
         }
+        // Unique-count caption below the bars, matching the unordered stacked bar
+        // (keeps the two categorical distributions looking consistent).
+        const cap = document.createElement('div');
+        cap.className = 'stacked-cap';
+        cap.textContent = `${bars.allUnique ? 'all ' : ''}${bars.unique.toLocaleString()} unique`;
+        cell.appendChild(cap);
         cell.dataset.col = String(c);
       } else if (hist && hist.counts.length) {
         const f = (v: number) => markerFraction(hist.edges, v);

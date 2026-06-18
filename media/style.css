@@ -527,6 +527,21 @@ body:not(.stats-hist) #stats-row .stat-hist {
   gap: 3px;
 }
 
+/* Ordered-categorical bars: pin the bars to the top at the same height as the
+   numeric histogram's bars (cell 63px content − ~10px ticks − ~22px axis ≈ 30px)
+   so their baselines line up, then drop the caption to the same height as the
+   unordered stacked-bar's caption — the stacked bar centers its [14px bar + 3px
+   gap + caption] group, so its caption sits ~34px down. The unused space stays
+   empty below. */
+.cell.stat-hist.stat-ordinal .hist {
+  flex: none;
+  height: 30px;
+}
+
+.cell.stat-hist.stat-ordinal .stacked-cap {
+  margin-top: 4px;
+}
+
 .cell.stat-hist .stacked {
   flex: none;
   display: block;

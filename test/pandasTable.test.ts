@@ -256,6 +256,12 @@ test('buildDumpCode embeds the expression and the index-name logic', () => {
   // Click-to-filter: a per-category `col == value` clause rides along with bars.
   assert.match(code, /_filters = \["%s == %s" % \(_q, _lit\(_k\)\) for _k in _cats\]/);
   assert.match(code, /"filters": _filters/);
+  // Bars carry a unique-count (nonzero categories) + allUnique, for the same
+  // "N unique" caption the unordered stacked bar shows.
+  assert.match(code, /_present = \[_x for _x in _counts if _x > 0\]/);
+  assert.match(code, /_unique = len\(_present\)/);
+  assert.match(code, /_all_unique = bool\(_present\) and max\(_present\) == 1/);
+  assert.match(code, /"unique": _unique, "allUnique": _all_unique/);
   // Unordered/text/bool columns: a shared _nominal_info builds both the stacked
   // bar segments and a value->color map (vmap) for cell coloring.
   assert.match(code, /def _nominal_info\(_c\):/);

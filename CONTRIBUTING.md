@@ -238,7 +238,10 @@ colormap sampled at its rank — again only when the categorical toggle
 fill. They reuse `histogramSvg` for the bars; the
 per-bar fill is applied in `main.ts` via `rect.style.fill` (DOM CSSOM, which is
 CSP-safe and beats the stylesheet's default fill — an inline `style=` attribute
-in the SVG string would be blocked by `style-src`). No ticks or min/median/max.
+in the SVG string would be blocked by `style-src`). No ticks or min/median/max,
+but they carry `unique`/`allUnique` (nonzero categories) and reuse the
+`.stacked-cap` "N unique" caption below the bars, so the two categorical
+distributions read consistently.
 **Unordered discrete** columns — text/object, unordered categorical, bool —
 get a horizontal stacked bar from `_nominal_info` in `buildDumpCode` (computed
 once per column and reused for the cell coloring above, so bar and cells share
