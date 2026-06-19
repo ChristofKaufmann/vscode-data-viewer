@@ -5,11 +5,17 @@ import { WebviewMessage } from './shared/protocol';
 
 export { LoadOptions, TableData } from './tableHost';
 
-// Colormaps offered in the Colorize settings popover (matplotlib names).
+// Colormaps offered in the Colorize settings popover: matplotlib's full named
+// set, grouped by its standard categories. The preview swatches in
+// `webview/colormaps.ts` (CMAP_STOPS) must stay in sync with these names —
+// regenerate both from matplotlib together if this list changes.
 const COLORMAP_GROUPS: { label: string; names: string[] }[] = [
   { label: 'Perceptually uniform', names: ['viridis', 'plasma', 'inferno', 'magma', 'cividis'] },
-  { label: 'Sequential', names: ['Blues', 'Greens', 'Oranges', 'Greys'] },
-  { label: 'Diverging', names: ['coolwarm', 'RdBu', 'Spectral', 'bwr'] },
+  { label: 'Sequential', names: ['Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds', 'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu', 'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn'] },
+  { label: 'Sequential (2)', names: ['binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink', 'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia', 'hot', 'afmhot', 'gist_heat', 'copper'] },
+  { label: 'Diverging', names: ['PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu', 'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic', 'berlin', 'managua', 'vanimo'] },
+  { label: 'Cyclic', names: ['twilight', 'twilight_shifted', 'hsv'] },
+  { label: 'Miscellaneous', names: ['ocean', 'gist_earth', 'terrain', 'gist_stern', 'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg', 'gist_rainbow', 'rainbow', 'jet', 'turbo', 'nipy_spectral', 'gist_ncar'] },
 ];
 
 /**
