@@ -93,38 +93,33 @@ export function stackedBarSvg(counts: number[]): string {
   return `<svg class="stacked" viewBox="0 0 100 10" preserveAspectRatio="none">${rects}</svg>`;
 }
 
-/** Min segment width / gap (viewBox units) for the missing/available split bar. */
-const NA_MIN = 12;
-const NA_GAP = 1;
-
 /**
- * Geometry for the available/missing split bar shown above the missing count.
- * One full-width segment when all values are available or all missing (not
- * clickable); otherwise two segments, each clamped to a minimum width so even a
- * single missing/available value stays visible and clickable. `clickable` is
- * true only when both segments are present (so a click maps to notna/isna).
+ * Segments for the available/missing split bar shown above the missing count.
+ * Rendered as flex `<div>`s (not a stretching SVG) so each segment's minimum is
+ * an absolute CSS `min-width` in px that survives column resizing; `grow` is the
+ * flex-grow weight (the raw count) that distributes the remaining width. One
+ * full-width segment when all values are available or all missing (not
+ * clickable); two segments otherwise. `clickable` is true only when both are
+ * present (so a click maps to notna/isna).
  */
 export function naBar(
   available: number,
   missing: number
-): { segments: { kind: 'avail' | 'missing'; x: number; w: number }[]; clickable: boolean } {
-  const round = (v: number) => Math.round(v * 100) / 100;
+): { segments: { kind: 'avail' | 'missing'; grow: number }[]; clickable: boolean } {
   const total = available + missing;
   if (total <= 0) {
     return { segments: [], clickable: false };
   }
   if (missing <= 0) {
-    return { segments: [{ kind: 'avail', x: 0, w: 100 }], clickable: false };
+    return { segments: [{ kind: 'avail', grow: 1 }], clickable: false };
   }
   if (available <= 0) {
-    return { segments: [{ kind: 'missing', x: 0, w: 100 }], clickable: false };
+    return { segments: [{ kind: 'missing', grow: 1 }], clickable: false };
   }
-  const span = 100 - NA_GAP;
-  const aw = Math.max(NA_MIN, Math.min(span - NA_MIN, (available / total) * span));
   return {
     segments: [
-      { kind: 'avail', x: 0, w: round(aw) },
-      { kind: 'missing', x: round(aw + NA_GAP), w: round(span - aw) },
+      { kind: 'avail', grow: available },
+      { kind: 'missing', grow: missing },
     ],
     clickable: true,
   };

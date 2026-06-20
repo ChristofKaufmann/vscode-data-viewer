@@ -449,27 +449,26 @@ function buildStatsRow(): void {
       const N = rowTotal.toLocaleString();
       const availTip = `${available.toLocaleString()} of ${N} available${availPct ? ` (${availPct})` : ''}`;
       const missTip = `${missing.toLocaleString()} of ${N} missing${missPct ? ` (${missPct})` : ''}`;
-      // Available/missing split bar above the counts; clickable as a quick filter
-      // only when both segments are present (so a click maps to notna/isna).
+      // Available/missing split bar above the counts: flex <div>s (not a
+      // stretching SVG) so a minority segment keeps an absolute px min-width when
+      // the column is resized. Clickable as a quick filter only when both
+      // segments are present (so a click maps to notna/isna).
       const { segments, clickable } = naBar(available, missing);
       if (segments.length) {
         const naFilter = columnStats[c]?.naFilter;
-        const rects = segments
-          .map(
-            (s) =>
-              `<rect class="${s.kind}" data-kind="${s.kind}" x="${s.x}" y="0" width="${s.w}" height="10">` +
-              `<title>${s.kind === 'missing' ? missTip : availTip}</title></rect>`
-          )
-          .join('');
-        const svg = document.createElement('div');
-        svg.className = 'na-bar-wrap';
-        svg.innerHTML = `<svg class="na-bar${clickable ? ' clickable' : ''}" viewBox="0 0 100 10" preserveAspectRatio="none">${rects}</svg>`;
-        if (clickable && naFilter) {
-          for (const rect of svg.querySelectorAll<SVGElement>('rect')) {
-            rect.dataset.filter = rect.dataset.kind === 'missing' ? naFilter.missing : naFilter.available;
+        const bar = document.createElement('div');
+        bar.className = `na-bar${clickable ? ' clickable' : ''}`;
+        for (const s of segments) {
+          const seg = document.createElement('div');
+          seg.className = s.kind;
+          seg.style.flexGrow = String(s.grow);
+          seg.title = s.kind === 'missing' ? missTip : availTip;
+          if (clickable && naFilter) {
+            seg.dataset.filter = s.kind === 'missing' ? naFilter.missing : naFilter.available;
           }
+          bar.appendChild(seg);
         }
-        cell.appendChild(svg);
+        cell.appendChild(bar);
       }
       // Counts below the bar: available % on the left, missing % on the right
       // (just the percentage to stay compact; the absolute count is in the
@@ -691,9 +690,9 @@ statsRow.addEventListener('mouseleave', hideHistBubble);
 function filterFromStat(e: MouseEvent): void {
   // Missing/available split bar: a segment carries its own notna()/isna() clause
   // (only set when both segments are present, i.e. the bar is clickable).
-  const naRect = (e.target as Element).closest('.na-bar rect[data-filter]') as SVGElement | null;
-  if (naRect?.dataset.filter) {
-    applyFilterClause(naRect.dataset.filter);
+  const naSeg = (e.target as Element).closest('.na-bar [data-filter]') as HTMLElement | null;
+  if (naSeg?.dataset.filter) {
+    applyFilterClause(naSeg.dataset.filter);
     return;
   }
   // Only the bars themselves filter — not the min/median/max labels or the
