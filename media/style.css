@@ -227,7 +227,7 @@ body.filtering #scroller {
 
 /* Colormap picker: a scrollable inline listbox, one preview swatch per row. */
 #colormap-list {
-  max-height: 200px;
+  max-height: 132px;
   overflow-y: auto;
   border: 1px solid var(--vscode-dropdown-border, var(--vscode-input-border, rgba(128, 128, 128, 0.4)));
   border-radius: 3px;
@@ -237,8 +237,8 @@ body.filtering #scroller {
 #colormap-list .cmap-group {
   position: sticky;
   top: 0;
-  padding: 3px 6px 2px;
-  font-size: 10px;
+  padding: 2px 5px 1px;
+  font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--vscode-descriptionForeground);
@@ -248,8 +248,8 @@ body.filtering #scroller {
 #colormap-list .cmap-opt {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 6px;
+  gap: 5px;
+  padding: 1px 5px;
   cursor: pointer;
 }
 
@@ -270,13 +270,13 @@ body.filtering #scroller {
 #colormap-list .cmap-swatch {
   flex: none;
   width: 48px;
-  height: 12px;
+  height: 10px;
   border: 1px solid var(--vscode-dropdown-border, rgba(128, 128, 128, 0.4));
   border-radius: 2px;
 }
 
 #colormap-list .cmap-name {
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
