@@ -8,9 +8,9 @@ View tabular Jupyter variables and data files.
 
 - View data in a **tabular grid** with sticky index and column headers.
 - **Sort** with multiple keys.
-- **Filter** using [Pandas' query syntax](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.query.html).
 - Look at **missing value ratios** and the distribution **plots** (histogram or stacked bar).
-- **Quick filter** data using the plots.
+- **Filter** using [Pandas' query syntax](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.query.html).
+- **Quick filter** data by clicking in the plots.
 - **Colorize** cells and graphs.
 
 ## Usage
