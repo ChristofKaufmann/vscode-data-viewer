@@ -2,6 +2,9 @@ node_modules/
 dist/
 *.vsix
 
+# Generated during the publish workflow
+RELEASE_NOTES.md
+
 # Generated/compressed data artifacts (e.g. from sample-data/jup-vars.py)
 *.parquet
 *.feather
