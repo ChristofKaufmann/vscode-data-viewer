@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.0.2
+
+- Published under the id `vscode-data-viewer`. No functional changes from v0.0.1.
+
 ## v0.0.1
 
 - Open **Jupyter variables** (`DataFrame`/`Series`/`ndarray`/`list`/`dict`) from

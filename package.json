@@ -1,8 +1,8 @@
 {
-  "name": "data-viewer",
+  "name": "vscode-data-viewer",
   "displayName": "Data Viewer",
   "description": "View tabular Jupyter variables and data files.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "ChristofKaufmann",
   "icon": "icon/icon.png",
   "license": "MIT",
