@@ -41,3 +41,12 @@ export function updateColorizeSettings(
 ): Thenable<void> {
   return context.globalState.update(STATE_KEY, settings);
 }
+
+/**
+ * Opt the persisted settings into Settings Sync, so the choices roam across a
+ * user's machines (extension `globalState` is otherwise local to each install).
+ * Call once on activation.
+ */
+export function registerColorizeSettingsSync(context: vscode.ExtensionContext): void {
+  context.globalState.setKeysForSync([STATE_KEY]);
+}

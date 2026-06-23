@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import { TableEditorProvider } from './tableEditorProvider';
 import { registerJupyterVariableViewer } from './jupyterVariableViewer';
+import { registerColorizeSettingsSync } from './colorizeSettings';
 
 export function activate(context: vscode.ExtensionContext): void {
+  registerColorizeSettingsSync(context);
   context.subscriptions.push(TableEditorProvider.register(context));
   context.subscriptions.push(registerJupyterVariableViewer(context));
 
