@@ -25,7 +25,7 @@ class TableDocument implements vscode.CustomDocument {
 
 export class TableEditorProvider implements vscode.CustomReadonlyEditorProvider<TableDocument> {
   // All formats (CSV/TSV, Parquet/Feather, NumPy, …) are opt-in: the editor has
-  // `priority: option`, so it's reached via "Open in Data Viewer" / "Reopen Editor
+  // `priority: option`, so it's reached via "Open in DataFrame Viewer" / "Reopen Editor
   // With…" rather than replacing the default. The reader is chosen per file by
   // extension in loadData.
   static readonly viewType = 'dataViewer.table';
@@ -79,7 +79,7 @@ export class TableEditorProvider implements vscode.CustomReadonlyEditorProvider<
     for (;;) {
       try {
         const stdout = await vscode.window.withProgress(
-          { location: vscode.ProgressLocation.Window, title: `Data Viewer: loading ${name}…` },
+          { location: vscode.ProgressLocation.Window, title: `DataFrame Viewer: loading ${name}…` },
           (_progress, token) => runPythonScript(code, uri, token)
         );
         return { fileName: name, ...toTable(parsePayload(stdout)) };

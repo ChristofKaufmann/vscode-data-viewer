@@ -12,7 +12,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('dataViewer.open', async (uri?: vscode.Uri) => {
       uri ??= vscode.window.activeTextEditor?.document.uri;
       if (!uri) {
-        void vscode.window.showErrorMessage('Data Viewer: no file selected.');
+        void vscode.window.showErrorMessage('DataFrame Viewer: no file selected.');
         return;
       }
       await vscode.commands.executeCommand('vscode.openWith', uri, TableEditorProvider.viewType);

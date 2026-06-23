@@ -44,7 +44,7 @@ export function configureTableWebview(
   const handle = createTableHost({
     load,
     post: (message) => void webview.postMessage(message),
-    reportError: (message) => void vscode.window.showErrorMessage(`Data Viewer: ${message}`),
+    reportError: (message) => void vscode.window.showErrorMessage(`DataFrame Viewer: ${message}`),
   });
 
   return webview.onDidReceiveMessage((message: WebviewMessage) => {
@@ -116,7 +116,7 @@ function getHtml(
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="${codiconUri}" rel="stylesheet">
   <link href="${styleUri}" rel="stylesheet">
-  <title>Data Viewer</title>
+  <title>DataFrame Viewer</title>
 </head>
 <body>
   <div id="toolbar">

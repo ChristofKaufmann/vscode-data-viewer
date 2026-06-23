@@ -2,14 +2,14 @@
 
 ## v0.0.2
 
-- Published under the id `vscode-data-viewer`. No functional changes from v0.0.1.
+- First public release, on the VS Code Marketplace and Open VSX as **DataFrame Viewer**.
 
 ## v0.0.1
 
 - Open **Jupyter variables** (`DataFrame`/`Series`/`ndarray`/`list`/`dict`) from
   the Jupyter extension's Variables panel, and **debugger variables**
-  ("View Value in Data Viewer" in the debug Variables pane)
-- Supported file types (right-click → **Open in Data Viewer**):
+  ("View Value in DataFrame Viewer" in the debug Variables pane)
+- Supported file types (right-click → **Open in DataFrame Viewer**):
   - **CSV / TSV** via `pandas.read_csv` (delimiter auto-detected: comma,
     semicolon, tab, pipe)
   - **JSON Lines** (`*.jsonl`/`*.ndjson`) via `pandas.read_json`

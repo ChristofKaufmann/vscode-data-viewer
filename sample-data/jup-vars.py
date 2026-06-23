@@ -1,9 +1,9 @@
 # %%
-# Sample variables for trying out the Data Viewer.
+# Sample variables for trying out the DataFrame Viewer.
 #
 # Run these cells in a Jupyter kernel (VS Code's interactive window works well),
 # from this `sample-data` folder so the relative CSV path resolves. Then open
-# each variable from the Jupyter VARIABLES panel via the Data Viewer icon. Each
+# each variable from the Jupyter Variables panel via the DataFrame Viewer icon. Each
 # cell exercises a different feature.
 import numpy as np
 import pandas as pd

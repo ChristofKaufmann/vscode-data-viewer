@@ -36,8 +36,8 @@ export function registerJupyterVariableViewer(context: vscode.ExtensionContext):
       } catch (err) {
         const message =
           err instanceof Error && err.name === 'vscode.jupyter.apiAccessRevoked'
-            ? 'Data Viewer was denied access to Jupyter kernels. Run "Jupyter: Manage Access To Jupyter Kernels" to change this.'
-            : `Data Viewer: failed to load variable. ${err instanceof Error ? err.message : String(err)}`;
+            ? 'DataFrame Viewer was denied access to Jupyter kernels. Run "Jupyter: Manage Access To Jupyter Kernels" to change this.'
+            : `DataFrame Viewer: failed to load variable. ${err instanceof Error ? err.message : String(err)}`;
         void vscode.window.showErrorMessage(message);
       }
     }
@@ -93,7 +93,7 @@ async function openVariable(
       const payload = await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: `Data Viewer: loading "${variableName}"…`,
+          title: `DataFrame Viewer: loading "${variableName}"…`,
           cancellable: true,
         },
         (_progress, token) => fetchVariable(kernel, variableName, options, token)
@@ -102,7 +102,7 @@ async function openVariable(
     } catch (err) {
       if (err instanceof Error && err.name === 'vscode.jupyter.apiAccessRevoked') {
         throw new Error(
-          'Data Viewer was denied access to Jupyter kernels. Run "Jupyter: Manage Access To Jupyter Kernels" to change this.'
+          'DataFrame Viewer was denied access to Jupyter kernels. Run "Jupyter: Manage Access To Jupyter Kernels" to change this.'
         );
       }
       throw err;
@@ -185,7 +185,7 @@ async function openDebugVariable(
     const payload = await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: `Data Viewer: loading "${variableName}"…`,
+        title: `DataFrame Viewer: loading "${variableName}"…`,
         cancellable: false,
       },
       () => fetchDebugVariable(session, threadId, variable.frameId!, variableName, options)

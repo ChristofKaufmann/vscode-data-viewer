@@ -163,7 +163,7 @@ export function buildDumpCode(objExpr: string, options: DumpOptions = {}): strin
     '            _arrs = [_np.atleast_1d(_np.squeeze(_a)) for _a in _raw]',
     '            if any(_a.ndim != 1 for _a in _arrs) or len({_a.shape[0] for _a in _arrs}) > 1:',
     '                _shapes = ", ".join("%s=%s" % (_k, _a.shape) for _k, _a in zip(_keys, _raw))',
-    '                raise ValueError("This .npz holds multiple arrays that are not 1-D columns of equal length (%s). Data Viewer can show a .npz as a table only when it is a single array or several 1-D arrays (each (N,), (N, 1) or (1, N)) of the same length." % _shapes)',
+    '                raise ValueError("This .npz holds multiple arrays that are not 1-D columns of equal length (%s). DataFrame Viewer can show a .npz as a table only when it is a single array or several 1-D arrays (each (N,), (N, 1) or (1, N)) of the same length." % _shapes)',
     '            return pd.DataFrame(dict(zip(_keys, _arrs)))',
     '        return _frame(_obj)',
     `    obj = ${objExpr}`,

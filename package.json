@@ -1,6 +1,6 @@
 {
-  "name": "vscode-data-viewer",
-  "displayName": "Data Viewer",
+  "name": "dataframe-viewer",
+  "displayName": "DataFrame Viewer",
   "description": "View tabular Jupyter variables and data files.",
   "version": "0.0.2",
   "publisher": "ChristofKaufmann",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ChristofKaufmann/vscode-data-viewer"
+    "url": "https://github.com/ChristofKaufmann/dataframe-viewer"
   },
   "galleryBanner": {
     "color": "#1f2021",
@@ -38,7 +38,7 @@
     "customEditors": [
       {
         "viewType": "dataViewer.table",
-        "displayName": "Data Viewer",
+        "displayName": "DataFrame Viewer",
         "selector": [
           {
             "filenamePattern": "*.{csv,tsv,jsonl,ndjson,parquet,pq,feather,arrow,npy,npz}"
@@ -56,19 +56,19 @@
     "commands": [
       {
         "command": "dataViewer.open",
-        "title": "Open in Data Viewer",
-        "category": "Data Viewer"
+        "title": "Open in DataFrame Viewer",
+        "category": "DataFrame Viewer"
       },
       {
         "command": "dataViewer.openJupyterVariable",
-        "title": "Open Jupyter Variable in Data Viewer",
-        "category": "Data Viewer"
+        "title": "Open Jupyter Variable in DataFrame Viewer",
+        "category": "DataFrame Viewer"
       }
     ],
     "jupyterVariableViewers": [
       {
         "command": "dataViewer.openJupyterVariable",
-        "title": "Open in Data Viewer",
+        "title": "Open in DataFrame Viewer",
         "dataTypes": [
           "DataFrame",
           "Series",

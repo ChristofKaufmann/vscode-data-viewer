@@ -4,7 +4,7 @@ import type { PythonExtension } from '@vscode/python-extension';
 
 // A LogOutputChannel (vs a plain channel) gives timestamped, level-tagged lines
 // and respects the user's log-level filter in the Output view.
-const log = vscode.window.createOutputChannel('Data Viewer', { log: true });
+const log = vscode.window.createOutputChannel('DataFrame Viewer', { log: true });
 
 /** A Python failure the user can likely fix by picking another interpreter. */
 export class PythonEnvironmentError extends Error {

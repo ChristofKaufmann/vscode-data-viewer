@@ -1,8 +1,8 @@
-# Data Viewer
+# DataFrame Viewer
 
 View tabular Jupyter variables and data files.
 
-![Data Viewer with default settings](images/default-settings.webp)
+![DataFrame Viewer with default settings](images/default-settings.webp)
 
 ## Main Features
 
@@ -23,7 +23,7 @@ Load Jupyter variables, when executing a Jupyter notebook or a Python script wit
 
 View variables in debug mode and open files. *Note: Data types are not inferred from CSV or TSV files.*
 
-![Left: Mouse pointing at "View Value in Data Viewer" in debug variable context menu, right: mouse pointing at "Open in Data Viewer" in CSV file context menu](images/open-from-debugger-and-file.webp)
+![Left: Mouse pointing at "View Value in DataFrame Viewer" in debug variable context menu, right: mouse pointing at "Open in DataFrame Viewer" in CSV file context menu](images/open-from-debugger-and-file.webp)
 
 ### Sort
 

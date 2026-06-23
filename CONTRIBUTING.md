@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest! Data Viewer is a small, **read-only** table viewer powered by a single pandas engine.
+Thanks for your interest! DataFrame Viewer is a small, **read-only** table viewer powered by a single pandas engine.
 
 ## Requirements
 
