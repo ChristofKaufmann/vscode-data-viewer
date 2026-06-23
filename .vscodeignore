@@ -16,6 +16,7 @@ sample-data/**
 .gitignore
 *.vsix
 CONTRIBUTING.md
+AGENTS.md
 esbuild.js
 icon/plot_icon.py
 images/**
